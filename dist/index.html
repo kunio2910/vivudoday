@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#08131c" />
+    <meta name="description" content="Khám phá địa danh Việt Nam trên bản đồ 3D tương tác." />
+    <title>Vietnam 3D Landmark Explorer</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="Vietnam Landmark Explorer">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <span>
+            <strong>VNE</strong>
+            <small>LANDMARK ATLAS</small>
+          </span>
+        </a>
+        <nav class="topnav" aria-label="Điều hướng chính">
+          <a class="nav-link active" href="#explore">Khám phá</a>
+          <a class="nav-link" href="#places">Địa danh</a>
+          <a class="nav-link" href="#journeyButton">Hành trình</a>
+          <a class="nav-link" href="#collection">Bộ sưu tập</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="language-switch" type="button" aria-label="Chuyển ngôn ngữ">VI <span>⌄</span></button>
+          <button class="icon-button" id="helpButton" type="button" aria-label="Trợ giúp">?</button>
+          <button class="avatar" type="button" aria-label="Tài khoản">LP</button>
+        </div>
+      </header>
+
+      <main id="top" class="main-content">
+        <section class="explore-layout" id="explore">
+          <aside class="left-rail" aria-label="Bộ lọc bản đồ">
+            <div class="eyebrow">01 / EXPLORE</div>
+            <h1>Chạm vào<br /><em>Việt Nam.</em></h1>
+            <p class="intro-copy">Một atlas trực quan cho những nơi đáng nhớ nhất — từ núi cao phía Bắc đến những đảo xanh phương Nam.</p>
+
+            <div class="search-box">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="searchInput" type="search" placeholder="Tìm địa danh, tỉnh, vùng..." autocomplete="off" />
+              <kbd>/</kbd>
+            </div>
+
+            <div class="filter-section">
+              <div class="section-label"><span>Danh mục</span><span class="count" id="visibleCount">12</span></div>
+              <div class="filter-list" id="categoryFilters"></div>
+            </div>
+
+            <div class="filter-section region-section">
+              <div class="section-label"><span>Khu vực</span></div>
+              <div class="region-pills" id="regionFilters"></div>
+            </div>
+
+            <button class="journey-teaser" id="journeyButton" type="button">
+              <span class="journey-icon" aria-hidden="true">↗</span>
+              <span>
+                <small>GỢI Ý HÔM NAY</small>
+                <strong>Di sản miền Trung</strong>
+                <em>Huế → Hội An → Mỹ Sơn</em>
+              </span>
+              <span class="arrow" aria-hidden="true">↗</span>
+            </button>
+          </aside>
+
+          <section class="map-stage" id="places" aria-label="Bản đồ tương tác Việt Nam">
+            <div class="map-toolbar">
+              <div class="map-status"><span class="live-dot"></span> LIVE ATLAS <span class="separator">/</span> 12 ĐIỂM ĐẾN</div>
+              <div class="map-actions">
+                <button class="view-toggle active" type="button" data-view="map" aria-label="Xem bản đồ">⌘ MAP</button>
+                <button class="view-toggle" type="button" data-view="list" aria-label="Xem danh sách">▤ LIST</button>
+              </div>
+            </div>
+
+            <div class="map-viewport" id="mapViewport">
+              <div class="map-grid"></div>
+              <div class="coordinate coordinate-north">22°N</div>
+              <div class="coordinate coordinate-south">09°N</div>
+              <div class="coordinate coordinate-east">109°E</div>
+              <div class="coordinate coordinate-west">103°E</div>
+
+              <div class="map-title-lockup">
+                <span>THE SHAPE OF</span>
+                <strong>VIỆT NAM</strong>
+                <small>interactive topography / v1.0</small>
+              </div>
+
+              <div class="map-orbit orbit-one"></div>
+              <div class="map-orbit orbit-two"></div>
+              <div class="map-orbit orbit-three"></div>
+
+              <div class="map-art map-image-art">
+                <img class="map-image" src="./MAP.png" alt="Bản đồ minh họa Việt Nam" draggable="false" />
+                <svg class="route-line" id="routeLine" viewBox="0 0 1024 1536" preserveAspectRatio="none" aria-hidden="true">
+                  <path d="M 445 640 C 463 658, 478 682, 487 693 S 496 706, 484 720" />
+                </svg>
+                <div class="route-label" id="routeLabel">CENTRAL HERITAGE LOOP <span>04 STOPS</span></div>
+                <div class="marker-layer" id="markerLayer"></div>
+              </div>
+
+              <div class="map-legend">
+                <span><i class="legend-dot"></i> ĐỊA DANH NỔI BẬT</span>
+                <span><i class="legend-line"></i> ĐƯỜNG HÀNH TRÌNH</span>
+              </div>
+
+              <div class="map-controls">
+                <button type="button" id="zoomIn" aria-label="Phóng to">+</button>
+                <button type="button" id="zoomOut" aria-label="Thu nhỏ">−</button>
+                <span></span>
+                <button type="button" id="resetMap" aria-label="Đặt lại bản đồ">⟳</button>
+              </div>
+              <div class="map-scale">0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 200 KM</div>
+            </div>
+
+            <div class="map-footer">
+              <span>DRAG TO ROTATE <b>·</b> CLICK A MARKER TO EXPLORE</span>
+              <span><b class="compass">N</b> NORTH / 01</span>
+            </div>
+
+            <div class="list-view" id="listView" hidden>
+              <div class="list-header">
+                <div><span class="eyebrow">02 / DIRECTORY</span><h2>Địa danh trong tầm tay</h2></div>
+                <span class="list-result-count" id="listResultCount">12 results</span>
+              </div>
+              <div class="place-grid" id="placeGrid"></div>
+            </div>
+          </section>
+
+          <aside class="detail-panel" id="detailPanel" aria-live="polite">
+            <div class="panel-header">
+              <span class="eyebrow">SELECTED LANDMARK</span>
+              <button class="close-button" id="closePanel" type="button" aria-label="Đóng panel">×</button>
+            </div>
+            <div id="quickPanelContent"></div>
+          </aside>
+        </section>
+
+        <section class="collection-strip" id="collection">
+          <div><span class="eyebrow">03 / YOUR COLLECTION</span><h2>Những nơi bạn muốn nhớ.</h2></div>
+          <div class="collection-stats"><span><strong id="favoriteCount">0</strong><small>ĐÃ LƯU</small></span><span><strong>04</strong><small>CHỦ ĐỀ</small></span><span><strong>12</strong><small>ĐỊA DANH</small></span></div>
+          <button class="outline-button" id="showFavorites" type="button">Xem nơi đã lưu <span>↗</span></button>
+        </section>
+      </main>
+
+      <div class="detail-modal" id="detailModal" hidden>
+        <div class="modal-backdrop" data-close-modal></div>
+        <article class="story-card" id="storyCard"></article>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+    <script src="./data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
