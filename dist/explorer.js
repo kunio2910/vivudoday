@@ -14,7 +14,7 @@
   function persist(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{notify('Trình duyệt không cho lưu. Bạn có thể xuất hành trình để giữ lại.');}}
   function visible(){return places.filter(p=>(!state.savedOnly||state.saved.includes(p.id))&&(state.category==='all'||p.categoryKey===state.category)&&(state.region==='Tất cả'||p.region===state.region)&&normalize([p.name,p.region,p.province,...p.tags].join(' ')).includes(normalize(state.query.trim())));}
   function render(){
-    const list=visible();
+    const list=visible().filter(p=>!state.regionView||p.region===state.regionView);
     $('savedCount').textContent=state.saved.length; $('tripCount').textContent=state.trip.length;
     $('savedToggle').setAttribute('aria-pressed',state.savedOnly);
     $('resultCount').textContent=`${list.length} địa điểm${state.savedOnly?' đã lưu':''}`;
@@ -29,8 +29,8 @@
   }
   function select(id,fromMap=false){state.selected=id;history.replaceState(null,'',`#${id}`);render();if(fromMap){$('markers').querySelector('.selected')?.focus({preventScroll:true});}else if(matchMedia('(max-width:1100px)').matches)$('details').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});}
   document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.select)select(b.dataset.select,b.classList.contains('marker'));if(b.dataset.save){const id=b.dataset.save;state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];persist('vne-favorites',state.saved);render();}if(b.dataset.add){if(!state.trip.includes(b.dataset.add))state.trip.push(b.dataset.add);persist('vivu-trip',state.trip);render();notify('Đã thêm vào hành trình');}if(b.dataset.category){state.category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.setAttribute('aria-pressed',x===b));render();}});
-  $('search').oninput=e=>{state.query=e.target.value;render();};$('clearSearch').onclick=()=>{state.query='';$('search').value='';render();$('search').focus();};$('region').onchange=e=>{state.region=e.target.value;render();};
-  $('resetFilters').onclick=()=>{state.query='';state.category='all';state.region='Tất cả';state.savedOnly=false;$('search').value='';$('region').value='Tất cả';document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.category==='all'));render();};
+  $('search').oninput=e=>{state.query=e.target.value;render();};$('clearSearch').onclick=()=>{state.query='';$('search').value='';render();$('search').focus();};$('region').onchange=e=>{if(e.target.value==='Tất cả'){state.regionView=null;state.region='Tất cả';applyRegionView();render();}else openRegion(e.target.value);};
+  $('resetFilters').onclick=()=>{state.query='';state.category='all';state.region='Tất cả';state.regionView=null;state.savedOnly=false;$('search').value='';$('region').value='Tất cả';document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.category==='all'));applyRegionView();render();};
   $('savedToggle').onclick=()=>{state.savedOnly=!state.savedOnly;render();};
   $('viewToggle').onclick=()=>{state.view=state.view==='map'?'list':'map';$('layout').classList.toggle('list-mode',state.view==='list');$('viewToggle').textContent=state.view==='map'?'Xem danh sách':'Xem bản đồ';};
   function zoom(delta){state.zoom=Math.max(1,Math.min(2,state.zoom+delta));$('scene').style.width=`${state.zoom*100}%`;$('scene').style.maxWidth='none';$('scene').style.flexShrink='0';$('zoomReset').textContent=`${Math.round(state.zoom*100)}%`;$('zoomOut').disabled=state.zoom===1;$('zoomIn').disabled=state.zoom===2;}
@@ -45,5 +45,29 @@
   $('openTrip').onclick=()=>{renderTrip();$('tripDialog').showModal();};$('closeTrip').onclick=()=>$('tripDialog').close();
   addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(places.some(p=>p.id===id)){state.selected=id;render();}});
   document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)&&!$('tripDialog').open){e.preventDefault();$('search').focus();}});
-  render();$('zoomOut').disabled=true;
+  const regionViews={
+    'Bắc Bộ':{slug:'bac-bo',label:'Bắc Bộ',description:'Núi cao, đồng bằng và biển đảo phía Bắc',scale:1.7,x:'12%',y:'58%'},
+    'Trung Bộ':{slug:'trung-bo',label:'Trung Bộ',description:'Dải di sản ven biển miền Trung',scale:1.75,x:'0%',y:'14%'},
+    'Tây Nguyên':{slug:'tay-nguyen',label:'Tây Nguyên',description:'Cao nguyên, rừng thông và thác nước',scale:1.8,x:'5%',y:'-15%'},
+    'Nam Bộ':{slug:'nam-bo',label:'Nam Bộ',description:'Miền sông nước và những đảo xanh',scale:1.8,x:'0%',y:'-43%'}
+  };
+  const mapWindow=$('mapWindow'), scene=$('scene'), regionAreas=document.createElement('div');
+  regionAreas.id='regionAreas';regionAreas.setAttribute('aria-label','Chọn khu vực trên bản đồ');scene.appendChild(regionAreas);
+  const toolbar=document.querySelector('.toolbar'), toolbarTitle=toolbar.querySelector('strong');
+  toolbarTitle.id='mapTitle';toolbarTitle.insertAdjacentHTML('afterend','<small id="mapCrumb">Bản đồ toàn quốc · Chọn một khu vực trên ảnh</small>');
+  toolbar.querySelector('.map-controls').insertAdjacentHTML('afterbegin','<button id="backToCountry" hidden>← Việt Nam</button>');
+  function renderRegionAreas(){
+    regionAreas.innerHTML=state.regionView?'':Object.values(regionViews).map(r=>`<button class="region-hotspot ${r.slug}" data-region-view="${r.label}" aria-label="Mở bản đồ ${r.label}"><span>${r.label}</span></button>`).join('');
+  }
+  function applyRegionView(){
+    const r=state.regionView?regionViews[state.regionView]:null;
+    mapWindow.classList.toggle('region-mode',Boolean(r));scene.className=`map-scene${r?' region-view region-'+r.slug:''}`;
+    if(r){scene.style.setProperty('--region-scale',r.scale);scene.style.setProperty('--region-x',r.x);scene.style.setProperty('--region-y',r.y);toolbarTitle.textContent=`Bản đồ ${r.label}`;$('mapCrumb').textContent=`${r.description} · ${visible().filter(p=>p.region===r.label).length} điểm đến`;$('backToCountry').hidden=false;}
+    else{scene.style.removeProperty('--region-scale');scene.style.removeProperty('--region-x');scene.style.removeProperty('--region-y');toolbarTitle.textContent='Việt Nam qua từng điểm đến';$('mapCrumb').textContent='Bản đồ toàn quốc · Chọn một khu vực trên ảnh';$('backToCountry').hidden=true;}
+    renderRegionAreas();
+  }
+  function openRegion(name){state.regionView=name;state.region=name;state.savedOnly=false;$('region').value=name;state.view='map';$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';const first=places.find(p=>p.region===name);if(first)state.selected=first.id;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);}
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-region-view]');if(b)openRegion(b.dataset.regionView);});
+  $('backToCountry').onclick=()=>{state.regionView=null;state.region='Tất cả';$('region').value='Tất cả';applyRegionView();render();mapWindow.scrollTo(0,0);notify('Đã trở về bản đồ Việt Nam');};
+  renderRegionAreas();applyRegionView();render();$('zoomOut').disabled=true;
 })();
