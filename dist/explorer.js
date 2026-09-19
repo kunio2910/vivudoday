@@ -24,6 +24,16 @@
   const provinceRegion=name=>Object.entries(provinceGroups).find(([,names])=>names.includes(name))?.[0]||'Trung Bộ';
   const placeProvinceName=p=>placeProvinces[p.id]||p.province||'';
   const provinceByName=name=>provinceData.find(p=>p.name===name);
+  const sidebar=document.querySelector('.sidebar');
+  sidebar.querySelector('.kicker')?.remove();
+  sidebar.insertAdjacentHTML('afterbegin','<div class="explore-panel-head"><div><span class="panel-eyebrow">Khám Phá</span><strong>Khám phá Việt Nam</strong></div><button id="closeExplore" aria-label="Đóng bảng Khám Phá">×</button></div>');
+  document.querySelector('.header-actions').insertAdjacentHTML('afterbegin','<button id="exploreToggle" aria-expanded="false">Khám Phá</button>');
+  const exploreBackdrop=document.createElement('div');exploreBackdrop.id='exploreBackdrop';exploreBackdrop.hidden=true;document.body.appendChild(exploreBackdrop);
+  function setExplore(open){
+    sidebar.hidden=!open;exploreBackdrop.hidden=!open;document.body.classList.toggle('explore-open',open);$('exploreToggle').setAttribute('aria-expanded',String(open));
+    if(open){setTimeout(()=>$('search').focus(),0);}
+  }
+  $('exploreToggle').onclick=()=>setExplore(true);$('closeExplore').onclick=()=>setExplore(false);exploreBackdrop.onclick=()=>setExplore(false);setExplore(false);
   function notify(message){$('notice').textContent=message;clearTimeout(notify.timer);notify.timer=setTimeout(()=>$('notice').textContent='',3000);}
   function persist(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{notify('Trình duyệt không cho lưu. Bạn có thể xuất hành trình để giữ lại.');}}
   function visible(){return places.filter(p=>(!state.savedOnly||state.saved.includes(p.id))&&(state.category==='all'||p.categoryKey===state.category)&&(state.region==='Tất cả'||p.region===state.region)&&(!state.provinceView||placeProvinceName(p)===state.provinceView)&&normalize([p.name,p.region,placeProvinceName(p),...p.tags].join(' ')).includes(normalize(state.query.trim())));}
@@ -49,10 +59,10 @@
     $('savedToggle').setAttribute('aria-pressed',state.savedOnly);
     $('resultCount').textContent=state.provinceView?`${list.length} địa điểm tại ${state.provinceView}`:`${list.length} địa điểm${state.savedOnly?' đã lưu':''}`;
     $('results').innerHTML=list.length?list.map(p=>`<button class="result ${p.id===state.selected?'selected':''}" data-select="${p.id}" aria-pressed="${p.id===state.selected}"><span class="symbol" aria-hidden="true">${icons[p.categoryKey]}</span><span><strong>${esc(p.name)}</strong><small>${placeProvinceName(p)} · ${p.category}</small></span><span class="chevron" aria-hidden="true">›</span></button>`).join(''):`<div class="empty">${state.savedOnly?'Chưa có địa điểm đã lưu phù hợp.':'Chưa có địa điểm nổi bật trong tỉnh này.'}<br>Hãy chọn tỉnh khác hoặc đặt lại bộ lọc.</div>`;
-    $('markers').innerHTML=list.map(p=>{const [x,y]=anchors[p.id];const active=p.id===state.selected;return `<button class="marker ${active?'selected':''}" data-select="${p.id}" data-side="${['my-son','hue','sapa','can-tho','phu-quoc'].includes(p.id)?'left':p.id==='hoi-an'?'below':'right'}" style="left:${x}%;top:${y}%" aria-label="Khám phá ${esc(p.name)}" aria-pressed="${active}"><span>${esc(p.name)}</span>${active?`<i class="marker-halo" aria-hidden="true"></i><i class="marker-ray" aria-hidden="true"></i><i class="marker-thumbnail"><img src="${esc(p.image)}" alt="${esc(p.imageAlt)}" referrerpolicy="no-referrer"><b>${esc(p.name)}</b><em>Ảnh minh họa</em></i>`:''}</button>`;}).join('');
+    $('markers').innerHTML=list.map(p=>{const [x,y]=anchors[p.id];const active=p.id===state.selected;return `<button class="marker ${active?'selected':''}" data-select="${p.id}" data-side="${['my-son','hue','sapa','can-tho','phu-quoc'].includes(p.id)?'left':p.id==='hoi-an'?'below':'right'}" style="left:${x}%;top:${y}%" aria-label="Khám phá ${esc(p.name)}" aria-pressed="${active}"><span>${esc(p.name)}</span>${active?`<i class="marker-halo" aria-hidden="true"></i><i class="marker-ray" aria-hidden="true"></i><div class="marker-thumbnail" data-province-open="${esc(placeProvinceName(p))}" role="button" tabindex="0" aria-label="Mở bản đồ ${esc(placeProvinceName(p))}"><img src="${esc(p.image)}" alt="${esc(p.imageAlt)}" referrerpolicy="no-referrer"><b>${esc(p.name)}</b><em>Mở bản đồ ${esc(placeProvinceName(p))}</em></div>`:''}</button>`;}).join('');
     $('markers').querySelectorAll('.marker-thumbnail img').forEach(img=>{img.onerror=()=>{img.hidden=true;img.closest('.marker-thumbnail').classList.add('image-unavailable');img.closest('.marker-thumbnail').querySelector('em').textContent='Chưa tải được ảnh';};});
     const province=state.provinceView&&provinceByName(state.provinceView);
-    if(province){renderProvinceDetails(province);return;}
+    if(province){renderProvinceMap();renderProvinceDetails(province);return;}
     const p=places.find(p=>p.id===state.selected);
     if(!p){$('details').innerHTML='<div class="empty">Chọn một địa điểm để xem thông tin.</div>';return;}
     const {latitude,longitude}=p.coordinates;
@@ -60,7 +70,7 @@
     $('sharePlace').onclick=async()=>{try{const url=new URL(location.href);url.hash=p.id;await navigator.clipboard.writeText(url.href);notify('Đã sao chép liên kết địa điểm');}catch{notify('Không thể sao chép tự động. Bạn có thể sao chép URL trên thanh địa chỉ.');}};
   }
   function select(id,fromMap=false){state.selected=id;history.replaceState(null,'',`#${id}`);render();if(fromMap){$('markers').querySelector('.selected')?.focus({preventScroll:true});}else if(matchMedia('(max-width:1100px)').matches)$('details').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});}
-  document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.province){openProvince(b.dataset.province);return;}if(b.dataset.backRegion){openRegion(state.regionView||'Trung Bộ');return;}if(b.dataset.select)select(b.dataset.select,b.classList.contains('marker'));if(b.dataset.save){const id=b.dataset.save;state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];persist('vne-favorites',state.saved);render();}if(b.dataset.add){if(!state.trip.includes(b.dataset.add))state.trip.push(b.dataset.add);persist('vivu-trip',state.trip);render();notify('Đã thêm vào hành trình');}if(b.dataset.category){state.category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.setAttribute('aria-pressed',x===b));render();}});
+  document.addEventListener('click',e=>{const thumbnail=e.target.closest('[data-province-open]');if(thumbnail){e.preventDefault();openProvince(thumbnail.dataset.provinceOpen);return;}const b=e.target.closest('button');if(!b)return;if(b.dataset.province){openProvince(b.dataset.province);return;}if(b.dataset.backRegion){openRegion(state.regionView||'Trung Bộ');return;}if(b.dataset.select)select(b.dataset.select,b.classList.contains('marker'));if(b.dataset.save){const id=b.dataset.save;state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];persist('vne-favorites',state.saved);render();}if(b.dataset.add){if(!state.trip.includes(b.dataset.add))state.trip.push(b.dataset.add);persist('vivu-trip',state.trip);render();notify('Đã thêm vào hành trình');}if(b.dataset.category){state.category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.setAttribute('aria-pressed',x===b));render();}});
   $('search').oninput=e=>{state.query=e.target.value;render();};$('clearSearch').onclick=()=>{state.query='';$('search').value='';render();$('search').focus();};$('region').onchange=e=>{if(e.target.value==='Tất cả'){state.regionView=null;state.provinceView=null;state.region='Tất cả';applyRegionView();render();}else openRegion(e.target.value);};
   $('resetFilters').onclick=()=>{state.query='';state.category='all';state.region='Tất cả';state.regionView=null;state.provinceView=null;state.savedOnly=false;$('search').value='';$('region').value='Tất cả';document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.category==='all'));applyRegionView();render();};
   $('savedToggle').onclick=()=>{state.savedOnly=!state.savedOnly;render();};
@@ -86,18 +96,30 @@
   const mapWindow=$('mapWindow'), scene=$('scene'), regionAreas=document.createElement('div');
   const provinceLayer=document.createElement('div');
   provinceLayer.id='provinceLayer';provinceLayer.hidden=true;mapWindow.appendChild(provinceLayer);
+  mapWindow.addEventListener('click',e=>{if(e.target.closest('.marker,.marker-thumbnail,.region-hotspot,.province-place-dot,.province-shape'))return;if(state.selected){state.selected=null;history.replaceState(null,'',location.pathname+location.search);render();}});
   const provinceBounds={minLon:102,maxLon:110.7,minLat:7.7,maxLat:23.7,width:760,height:1000};
-  const projectPoint=([lon,lat])=>[(((lon-provinceBounds.minLon)/(provinceBounds.maxLon-provinceBounds.minLon))*provinceBounds.width).toFixed(1),(((provinceBounds.maxLat-lat)/(provinceBounds.maxLat-provinceBounds.minLat))*provinceBounds.height).toFixed(1)].join(',');
+  const projectCoords=([lon,lat])=>[(((lon-provinceBounds.minLon)/(provinceBounds.maxLon-provinceBounds.minLon))*provinceBounds.width),(((provinceBounds.maxLat-lat)/(provinceBounds.maxLat-provinceBounds.minLat))*provinceBounds.height)];
+  const projectPoint=point=>projectCoords(point).map(value=>value.toFixed(1)).join(',');
+  function provinceViewport(province){
+    const points=province.polygons.flatMap(ring=>ring.filter(point=>point.length>=2).map(projectCoords));
+    const xs=points.map(point=>point[0]),ys=points.map(point=>point[1]);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const padX=Math.max((maxX-minX)*.24,18),padY=Math.max((maxY-minY)*.24,24);
+    return {x:Math.max(0,minX-padX),y:Math.max(0,minY-padY),width:Math.min(provinceBounds.width+1,(maxX-minX)+padX*2),height:Math.min(provinceBounds.height+1,(maxY-minY)+padY*2)};
+  }
   function renderProvinceMap(){
     if(!state.provinceView){provinceLayer.innerHTML='';return;}
     if(!provinceData.length){provinceLayer.innerHTML='<div class="province-loading">Đang tải bản đồ ranh giới tỉnh/thành…</div>';return;}
-    const active=state.provinceView;
-    const shapes=provinceData.map(p=>`<g class="province-shape ${p.name===active?'active':''}" data-province="${esc(p.name)}" role="button" tabindex="0" aria-label="Mở bản đồ ${esc(p.name)}">${p.polygons.filter(ring=>ring.length>=3).map(ring=>`<polygon points="${ring.map(projectPoint).join(' ')}"></polygon>`).join('')}<text x="${projectPoint(p.center).split(',')[0]}" y="${projectPoint(p.center).split(',')[1]}" text-anchor="middle">${esc(p.name)}</text></g>`).join('');
-    provinceLayer.innerHTML=`<svg class="province-svg" viewBox="0 0 ${provinceBounds.width} ${provinceBounds.height}" role="img" aria-label="Bản đồ 34 tỉnh thành Việt Nam"><rect class="province-sea" x="0" y="0" width="${provinceBounds.width}" height="${provinceBounds.height}"></rect><g>${shapes}</g></svg><p class="province-map-caption">Bấm vào một tỉnh/thành trên bản đồ hoặc danh sách để xem chi tiết.</p>`;
+    const province=provinceByName(state.provinceView);if(!province)return;
+    const viewport=provinceViewport(province),center=projectPoint(province.center).split(',');
+    const shape=`<g class="province-shape active" data-province="${esc(province.name)}" role="img" aria-label="Ranh giới ${esc(province.name)}">${province.polygons.filter(ring=>ring.length>=3).map(ring=>`<polygon points="${ring.map(projectPoint).join(' ')}"></polygon>`).join('')}<text x="${center[0]}" y="${center[1]}" text-anchor="middle">${esc(province.name)}</text></g>`;
+    const landmarks=places.filter(place=>placeProvinceName(place)===province.name).map(place=>{const [x,y]=projectCoords([place.coordinates.longitude,place.coordinates.latitude]);const left=((x-viewport.x)/viewport.width*100).toFixed(2),top=((y-viewport.y)/viewport.height*100).toFixed(2);return `<button class="province-place-dot ${place.id===state.selected?'selected':''}" data-select="${place.id}" style="left:${left}%;top:${top}%" aria-label="Chọn ${esc(place.name)}"><i></i><span>${esc(place.name)}</span></button>`;}).join('');
+    provinceLayer.innerHTML=`<div class="province-map-canvas"><svg class="province-svg" viewBox="${viewport.x.toFixed(1)} ${viewport.y.toFixed(1)} ${viewport.width.toFixed(1)} ${viewport.height.toFixed(1)}" role="img" aria-label="Bản đồ tỉnh ${esc(province.name)}"><rect class="province-sea" x="${viewport.x.toFixed(1)}" y="${viewport.y.toFixed(1)}" width="${viewport.width.toFixed(1)}" height="${viewport.height.toFixed(1)}"></rect><g>${shape}</g></svg><div class="province-place-layer">${landmarks}</div></div><p class="province-map-caption">Các chấm tròn là địa danh nổi bật trong ${esc(province.name)}.</p>`;
   }
   function openProvince(name){
     const province=provinceByName(name);
     if(!province){notify('Chưa có dữ liệu bản đồ cho tỉnh này');return;}
+    setExplore(false);
     state.provinceView=name;state.regionView=provinceRegion(name);state.region=state.regionView;state.savedOnly=false;state.view='map';$('region').value=state.region;$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';
     const first=places.find(p=>placeProvinceName(p)===name);state.selected=first?.id||null;
     applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);
@@ -118,10 +140,10 @@
     else{scene.style.removeProperty('--region-scale');scene.style.removeProperty('--region-x');scene.style.removeProperty('--region-y');toolbarTitle.textContent='Việt Nam qua từng điểm đến';$('mapCrumb').textContent='Bản đồ toàn quốc · Chọn một khu vực trên ảnh';$('backToCountry').hidden=true;provinceLayer.innerHTML='';}
     renderRegionAreas();
   }
-  function openRegion(name){state.provinceView=null;state.regionView=name;state.region=name;state.savedOnly=false;$('region').value=name;state.view='map';$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';const first=places.find(p=>p.region===name);if(first)state.selected=first.id;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);}
+  function openRegion(name){setExplore(false);state.provinceView=null;state.regionView=name;state.region=name;state.savedOnly=false;$('region').value=name;state.view='map';$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';const first=places.find(p=>p.region===name);if(first)state.selected=first.id;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);}
   document.addEventListener('click',e=>{const b=e.target.closest('[data-region-view]');if(b)openRegion(b.dataset.regionView);});
   document.addEventListener('click',e=>{const shape=e.target.closest?.('[data-province]');if(shape&&shape.tagName.toLowerCase()!=='button')openProvince(shape.dataset.province);});
-  document.addEventListener('keydown',e=>{const shape=e.target.closest?.('[data-province]');if(shape&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openProvince(shape.dataset.province);}});
+  document.addEventListener('keydown',e=>{const thumbnail=e.target.closest?.('[data-province-open]');if(thumbnail&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openProvince(thumbnail.dataset.provinceOpen);return;}const shape=e.target.closest?.('[data-province]');if(shape&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openProvince(shape.dataset.province);}});
   $('backToCountry').onclick=()=>{if(state.provinceView){state.provinceView=null;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã trở về bản đồ ${state.regionView}`);}else{state.regionView=null;state.region='Tất cả';$('region').value='Tất cả';applyRegionView();render();mapWindow.scrollTo(0,0);notify('Đã trở về bản đồ Việt Nam');}};
   renderRegionAreas();applyRegionView();render();$('zoomOut').disabled=true;
   fetch('./provinces-source.json',{cache:'force-cache'}).then(response=>{if(!response.ok)throw new Error('province-data');return response.json();}).then(payload=>{provinceData=Array.isArray(payload.provinces)?payload.provinces:[];if(state.provinceView)applyRegionView();render();}).catch(()=>notify('Không tải được dữ liệu bản đồ tỉnh/thành'));
