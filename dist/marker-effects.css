@@ -18,3 +18,45 @@
 .province-browser{margin:16px 0 4px;border:1px solid #dce6e2;border-radius:14px;background:#f7faf8;padding:10px}.province-browser-head{display:flex;justify-content:space-between;align-items:start;gap:8px;margin:2px 3px 8px}.province-browser-head strong{font-size:13px}.province-browser-head small{font-size:11px;text-align:right}.province-list{display:grid;gap:6px;max-height:31vh;overflow:auto}.province-entry{display:flex;align-items:center;gap:8px;width:100%;padding:9px;text-align:left;background:white;border-radius:10px}.province-entry.selected{border-color:#126957;background:#eaf5ee}.province-entry-icon{width:26px;height:26px;display:grid;place-items:center;flex:0 0 26px;border-radius:8px;background:#eaf5ee;color:#126957}.province-entry strong,.province-entry small{display:block}.province-entry small{font-size:10px;margin-top:3px}.province-entry .chevron{margin-left:auto;color:#7a9289}.map-window.province-mode{padding-top:0;background:linear-gradient(150deg,#eff8f3,#fff)}#provinceLayer{position:absolute;inset:0;z-index:3;display:grid;place-items:center;min-width:520px}.province-svg{width:min(92%,760px);height:92%;filter:drop-shadow(0 14px 20px rgba(24,58,55,.12))}.province-sea{fill:#eaf6f2}.province-shape polygon{fill:#cfe8d8;stroke:#fff;stroke-width:1.3;vector-effect:non-scaling-stroke;transition:fill .2s,stroke .2s}.province-shape:hover polygon,.province-shape:focus polygon{fill:#a7d7bb;stroke:#126957;stroke-width:2}.province-shape.active polygon{fill:#f2bb65;stroke:#a94d1c;stroke-width:2.4}.province-shape text{font-size:9px;font-weight:700;fill:#315c50;paint-order:stroke;stroke:#f7fcf9;stroke-width:3px;stroke-linejoin:round;pointer-events:none}.province-shape.active text{fill:#713814;font-size:11px}.province-map-caption{position:absolute;bottom:8px;left:0;right:0;text-align:center;margin:0;font-size:11px;color:#5e746d}.province-loading{padding:30px;color:#5e746d;background:#fff;border:1px solid #dce6e2;border-radius:14px}.map-window.province-mode+.map-note{display:none}@media(max-width:680px){.province-browser{margin-top:12px}.province-list{max-height:28vh}.province-entry{padding:8px}.map-window.province-mode{min-height:620px}.map-window.province-mode #provinceLayer{min-width:580px;left:50%;right:auto;width:150%;transform:translateX(-50%)}.province-svg{width:96%;height:88%}.province-shape text{font-size:8px}.province-shape.active text{font-size:10px}}
 .layout{grid-template-columns:minmax(300px,1fr) 320px}.sidebar:not([hidden]){position:fixed;top:92px;left:24px;z-index:24;width:min(370px,calc(100vw - 48px));max-height:calc(100svh - 108px);overflow:auto;border:1px solid #dce6e2;border-radius:20px;box-shadow:0 24px 70px #183a3740;padding:22px}.explore-panel-head{display:flex;justify-content:space-between;align-items:start;gap:12px;border-bottom:1px solid #dce6e2;padding-bottom:16px;margin-bottom:18px}.explore-panel-head strong,.explore-panel-head .panel-eyebrow{display:block}.explore-panel-head strong{font-size:19px}.panel-eyebrow{font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#126957;font-weight:700;margin-bottom:5px}.explore-panel-head button{padding:5px 10px;border:0;background:transparent;font-size:22px;line-height:1}.header-actions #exploreToggle{border-color:#126957;color:#126957;font-weight:700}.header-actions #exploreToggle[aria-expanded=true]{background:#126957;color:#fff}#exploreBackdrop{position:fixed;inset:0;z-index:20;background:#102c2866;backdrop-filter:blur(2px)}header{position:relative;z-index:25}.marker-thumbnail{pointer-events:auto;cursor:pointer}.province-map-canvas{position:relative;width:min(92%,760px);height:92%;filter:drop-shadow(0 14px 20px rgba(24,58,55,.12))}.province-map-canvas .province-svg{width:100%;height:100%;filter:none}.province-place-layer{position:absolute;inset:0}.province-place-dot{position:absolute;z-index:4;display:flex;align-items:center;gap:5px;padding:0;border:0;background:transparent;transform:translate(-50%,-50%);white-space:nowrap}.province-place-dot i{display:block;width:17px;height:17px;border:3px solid #fff;border-radius:50%;background:#126957;box-shadow:0 0 0 3px #12695755,0 4px 12px #183a3760}.province-place-dot span{padding:5px 8px;border-radius:8px;background:#fff;color:#183a37;font-size:11px;box-shadow:0 3px 12px #183a3725}.province-place-dot.selected i{background:#df741d;box-shadow:0 0 0 4px #ffbd4880,0 0 18px #ffb733}.province-place-dot:hover span,.province-place-dot:focus-visible span{background:#183a37;color:#fff}.map-window.province-mode #provinceLayer{min-width:0}.map-window.province-mode .province-map-caption{bottom:10px}@media(max-width:680px){.sidebar:not([hidden]){top:12px;left:12px;width:calc(100vw - 24px);max-height:calc(100svh - 24px);border-radius:18px}.layout{grid-template-columns:1fr}.province-map-canvas{width:92%;height:86%}.province-place-dot span{font-size:10px;padding:4px 6px}.province-place-dot i{width:15px;height:15px}}
 .layout.list-mode{grid-template-columns:minmax(300px,1fr) 350px}
+
+/* Map fit: keep the artwork large while letting the viewport control its height. */
+@media(min-width:681px){
+  html,body{overflow-x:hidden}
+  .layout{height:calc(100svh - 80px);min-height:0}
+  .map-section{min-height:0;padding:16px}
+  .map-window{min-height:0;overflow:hidden;padding-top:0}
+  .map-scene{height:100%;width:auto;min-width:0;max-width:100%;aspect-ratio:2/3;margin:auto}
+}
+@media(max-width:680px){
+  .map-window{min-height:0;max-height:75svh;overflow:hidden;padding-top:0}
+  .map-scene{width:100%;height:auto;min-width:0;aspect-ratio:2/3;margin:0}
+}
+
+/* Province/city layer: compact dots keep the map readable when all 34 units are shown. */
+#provinceLabels{position:absolute;inset:0;z-index:2;pointer-events:none}
+.province-label{position:absolute;display:flex;align-items:center;gap:3px;padding:0;border:0;background:transparent;color:#183a37;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:auto;z-index:2}
+.province-label i{display:block;width:7px;height:7px;flex:0 0 7px;border:1px solid #fff;border-radius:50%;background:#126957;box-shadow:0 1px 4px #183a3780}
+.province-label span{padding:2px 4px;border:1px solid #ffffffd9;border-radius:5px;background:#fffffff0;box-shadow:0 2px 7px #183a3725;color:#234b43;font-size:8px;font-weight:700;line-height:1.15}
+.province-label.city i{background:#df741d}
+.province-label:hover,.province-label:focus-visible{z-index:10}
+.province-label:hover span,.province-label:focus-visible span{background:#183a37;color:#fff;border-color:#183a37}
+
+/* Destination markers are intentionally smaller than the regional callouts. */
+.marker{width:14px;height:14px;border-width:2px}
+.marker span{left:16px;padding:3px 5px;font-size:10px}
+.marker[data-side=left] span{right:16px}
+.marker[data-side=below] span{top:16px}
+
+/* Make the three requested region labels clearly separate from province names. */
+.region-hotspot span{top:14px;left:14px;padding:8px 12px;border:2px solid #fff;border-radius:999px;background:#126957ed;color:#fff;font-size:15px;font-weight:800;letter-spacing:.02em;line-height:1;box-shadow:0 4px 16px #183a3740,0 0 0 3px #1269572b}
+.region-hotspot.bac-bo span{background:#0d6657f2}
+.region-hotspot.trung-bo span{background:#a34f20f2}
+.region-hotspot.nam-bo span{background:#1b6683f2}
+.region-hotspot.tay-nguyen span{background:#536d2df2}
+#open3d{left:auto;right:16px}
+@media(max-width:680px){
+  .province-label span{padding:2px 3px;font-size:7px}
+  .province-label i{width:6px;height:6px;flex-basis:6px}
+  .region-hotspot span{top:8px;left:8px;padding:6px 9px;font-size:12px}
+  #open3d{right:10px}
+}
