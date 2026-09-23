@@ -37,7 +37,7 @@
 .province-label{position:absolute;display:flex;align-items:center;gap:3px;padding:0;border:0;background:transparent;color:#183a37;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:auto;z-index:2}
 .province-label i{display:block;width:7px;height:7px;flex:0 0 7px;border:1px solid #fff;border-radius:50%;background:#126957;box-shadow:0 1px 4px #183a3780}
 .province-label span{padding:2px 4px;border:1px solid #ffffffd9;border-radius:5px;background:#fffffff0;box-shadow:0 2px 7px #183a3725;color:#234b43;font-size:8px;font-weight:700;line-height:1.15}
-.province-label.city i{background:#df741d}
+.province-label.city{z-index:5}.province-label.city i{background:#df741d}
 .province-label:hover,.province-label:focus-visible{z-index:10}
 .province-label:hover span,.province-label:focus-visible span{background:#183a37;color:#fff;border-color:#183a37}
 
@@ -61,9 +61,9 @@
   #open3d{right:10px}
 }
 
-/* Country map: 150% default size with intentional scrolling for precise inspection. */
+/* Country map: 50% default size; the viewport still supports scrolling after zooming. */
 .map-window{display:block!important;overflow:auto;scrollbar-width:auto;scrollbar-color:#126957 #edf4f1}
-.map-scene{width:150%;height:auto;min-width:0;max-width:none;margin:0;aspect-ratio:2/3;transform-origin:top left}
+.map-scene{width:50%;height:auto;min-width:0;max-width:none;margin:0;aspect-ratio:2/3;transform-origin:top left}
 .map-scene>img{width:100%;height:auto;min-height:0;object-fit:contain}
 #markers{display:none}
 
@@ -93,3 +93,28 @@
   .province-label span{font-size:8px}
   .island-label b{font-size:8px;padding:2px 4px}
 }
+
+/* The top search field opens the Khám Phá panel without taking another menu slot. */
+.header-search{display:flex;align-items:center;gap:7px;width:min(260px,28vw);padding:5px 11px;border:1px solid #dce6e2;border-radius:12px;background:#f3f7f5;color:#183a37}
+.header-search:focus-within{border-color:#126957;box-shadow:0 0 0 3px #1269571c;background:#fff}
+.header-search-icon{display:block;width:18px;height:18px;flex:0 0 18px;fill:none;stroke:#126957;stroke-linecap:round;stroke-width:2}
+.header-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;padding:6px 0;font-size:13px;color:inherit}
+.header-search input::placeholder{color:#6a8379}
+
+/* HCM view uses the supplied illustrated map plus a searchable-by-sight district directory. */
+.map-window.hcm-mode{overflow:hidden;padding-top:0;background:#fff}
+#hcmLayer{position:absolute;inset:0;z-index:6;overflow:auto;background:linear-gradient(145deg,#f7fbf8,#fff)}
+.hcm-map-shell{min-height:100%;padding:20px 22px 30px}
+.hcm-map-intro{display:flex;justify-content:space-between;align-items:start;gap:14px;max-width:900px;margin:0 auto 14px;padding:13px 15px;border:1px solid #dce6e2;border-radius:14px;background:#ffffffdd}
+.hcm-map-intro strong,.hcm-map-intro small{display:block}.hcm-map-intro strong{font-size:18px}.hcm-map-intro small{margin-top:4px;font-size:12px}.hcm-place-count{padding:7px 10px;border-radius:999px;background:#eaf5ee;color:#126957;font-size:12px;font-weight:800;white-space:nowrap}
+.hcm-map-canvas{position:relative;width:min(100%,900px);margin:0 auto;aspect-ratio:1130/1404;border:1px solid #dce6e2;border-radius:18px;background:#fff;box-shadow:0 16px 36px #183a3718;overflow:hidden}
+.hcm-map-canvas>img{display:block;width:100%;height:100%;object-fit:contain}
+.hcm-landmark-layer{position:absolute;inset:0}
+.hcm-place-pin{position:absolute;display:flex;align-items:center;gap:4px;padding:0;border:0;background:transparent;transform:translate(-50%,-50%);z-index:2}
+.hcm-place-pin i{display:block;width:9px;height:9px;border:2px solid #fff;border-radius:50%;background:#126957;box-shadow:0 0 0 3px #12695755,0 2px 7px #183a3760}
+.hcm-place-pin span{display:none;padding:4px 7px;border:1px solid #126957;background:#183a37;color:#fff;border-radius:7px;font-size:10px;line-height:1.2;white-space:nowrap;box-shadow:0 4px 12px #183a3740}
+.hcm-place-pin:hover,.hcm-place-pin:focus-visible{z-index:8}.hcm-place-pin:hover span,.hcm-place-pin:focus-visible span{display:block}
+.hcm-directory-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;max-width:900px;margin:22px auto 10px}.hcm-directory-head strong{font-size:15px}.hcm-directory-head small{font-size:11px}
+.hcm-directory{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:9px;max-width:900px;margin:0 auto}.hcm-district-card{padding:11px 12px;border:1px solid #dce6e2;border-radius:12px;background:#fff}.hcm-district-card h3{margin:0 0 7px;color:#126957;font-size:13px}.hcm-district-card ul{display:grid;gap:5px;margin:0;padding:0;list-style:none}.hcm-district-card li{display:flex;justify-content:space-between;align-items:baseline;gap:7px;font-size:11px}.hcm-district-card li strong{font-weight:700}.hcm-district-card li small{font-size:10px;text-align:right;white-space:nowrap}
+.map-window.hcm-mode+.map-note{display:none}
+@media(max-width:680px){.header-actions{flex-wrap:wrap}.header-search{order:-1;flex:1 0 100%;width:100%}.hcm-map-shell{padding:12px}.hcm-map-intro{padding:11px 12px}.hcm-map-intro small{font-size:11px}.hcm-directory-head{display:block}.hcm-directory-head small{display:block;margin-top:4px}.hcm-directory{grid-template-columns:1fr}.hcm-place-pin i{width:8px;height:8px}.hcm-place-pin span{font-size:9px}}
