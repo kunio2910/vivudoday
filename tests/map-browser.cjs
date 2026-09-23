@@ -16,11 +16,18 @@ const {chromium}=require('playwright');
   await page.locator('.region-hotspot.bac-bo').hover();
   assert.equal(await page.locator('.region-hover-labels[data-region="bac-bo"]').evaluate(el=>getComputedStyle(el).display),'block');
   assert((await page.locator('.region-hover-labels[data-region="bac-bo"]').innerText()).includes('Hà Nội'));
+  await page.locator('.region-province-label[data-province="Hà Nội"]').click();
+  assert.equal(await page.locator('.province-marker.active').count(),1);
+  assert.equal(await page.locator('.province-preview').count(),1);
   await page.mouse.move(5,5);
+  assert.equal(await page.locator('.province-marker.active').count(),1);
+  await page.locator('[data-region-view="Tất cả"]').click();
+  assert.equal(await page.locator('.province-marker.active').count(),0);
   assert.equal(await page.locator('.region-hover-labels[data-region="bac-bo"]').evaluate(el=>getComputedStyle(el).display),'none');
   for(const region of ['Bắc Bộ','Trung Bộ','Tây Nguyên','Nam Bộ']){
     await page.locator('.region-chip[data-region-view="'+region+'"]').click();
-    assert(await page.evaluate(()=>{const w=document.querySelector('#mapWindow').getBoundingClientRect(),s=document.querySelector('#scene').getBoundingClientRect();return document.documentElement.scrollWidth<=innerWidth+1&&s.bottom>w.top&&s.top<w.bottom;}),'Region focus overflow or empty viewport: '+region);
+    await page.waitForTimeout(180);
+    assert(await page.evaluate(()=>{const w=document.querySelector('#mapWindow').getBoundingClientRect(),s=document.querySelector('#scene').getBoundingClientRect(),transform=getComputedStyle(document.querySelector('#scene')).transform;return document.documentElement.scrollWidth<=innerWidth+1&&s.bottom>w.top&&s.top<w.bottom&&transform!=='none';}),'Region focus overflow or empty viewport: '+region);
     await page.locator('.region-chip[data-region-view="Tất cả"]').click();
   }
   assert.equal(await page.locator('.province-marker.active').count(),0);
