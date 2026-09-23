@@ -169,4 +169,5 @@
   $('backToCountry').onclick=()=>{if(state.provinceView){state.provinceView=null;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã trở về bản đồ ${state.regionView}`);}else{state.regionView=null;state.region='Tất cả';$('region').value='Tất cả';applyRegionView();render();mapWindow.scrollTo(0,0);notify('Đã trở về bản đồ Việt Nam');}};
   renderRegionAreas();applyRegionView();render();$('zoomOut').disabled=true;
   fetch('./provinces-source.json',{cache:'force-cache'}).then(response=>{if(!response.ok)throw new Error('province-data');return response.json();}).then(payload=>{provinceData=Array.isArray(payload.provinces)?payload.provinces:[];if(state.provinceView)applyRegionView();render();}).catch(()=>notify('Không tải được dữ liệu bản đồ tỉnh/thành'));
+  addEventListener('vivu:places-ready', () => { renderRegionAreas(); applyRegionView(); render(); notify('Đã đồng bộ địa danh từ Firebase'); });
 })();

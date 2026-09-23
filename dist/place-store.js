@@ -29,7 +29,12 @@
   try { edits = validateList(JSON.parse(localStorage.getItem(key) || '[]')); } catch(e) { warning = 'Không đọc được bản lưu trên trình duyệt: ' + e.message; }
   const base = window.VIETNAM_PLACES;
   const all = () => [...new Map([...base, ...published, ...edits].map(p => [p.id,p])).values()];
-  window.PlaceStore = { key, warning, all, validateList, save(p) {
+  window.PlaceStore = { key, warning, all, validateList, replaceRemote(list) {
+    published = validateList(list);
+    const next = all();
+    window.VIETNAM_PLACES.splice(0, window.VIETNAM_PLACES.length, ...next);
+    return next;
+  }, save(p) {
     const clean = validate(p);
     const next = [...edits.filter(x => x.id !== clean.id), clean];
     localStorage.setItem(key, JSON.stringify(next));
@@ -40,4 +45,5 @@
     localStorage.setItem(key, JSON.stringify(next)); edits = next;
   }, exported() { return [...new Map([...published, ...edits].map(p => [p.id,p])).values()]; } };
   window.VIETNAM_PLACES = all();
+  window.dispatchEvent(new CustomEvent('vivu:store-ready'));
 })();

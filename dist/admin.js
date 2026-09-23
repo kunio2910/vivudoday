@@ -2,7 +2,7 @@
   'use strict';
   const $ = id => document.getElementById(id), form = $('editor'), field = name => form.elements.namedItem(name), store = window.PlaceStore;
   const anchors = {'sapa':[23,11],'hanoi':[37,18],'ha-long':[51,16],'phong-nha':[36,34],'hue':[46,41],'da-nang':[53,45],'hoi-an':[55,48],'my-son':[48,49],'nha-trang':[64,62],'da-lat':[54,65],'can-tho':[36,77],'phu-quoc':[21,72]};
-  let selected = null, dirty = false;
+  let selected = null, dirty = false, firebaseApi = null, currentUser = null;
   const status = text => $('status').textContent = text;
   const normalize = text => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
   for (const r of window.VIETNAM_REGIONS.slice(1)) field('region').add(new Option(r,r));
@@ -34,13 +34,22 @@
   form.addEventListener('input', () => { dirty = true; pin(); });
   field('name').addEventListener('input', () => { if (!selected) field('id').value = normalize(field('name').value).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80); });
   $('mapPicker').onclick = e => { const rect = $('mapPicker').getBoundingClientRect(); field('left').value = Math.max(0,Math.min(100,(e.clientX-rect.left)/rect.width*100)).toFixed(2); field('top').value = Math.max(0,Math.min(100,(e.clientY-rect.top)/rect.height*100)).toFixed(2); dirty = true; pin(); };
-  form.onsubmit = e => {
+  form.onsubmit = async e => {
     e.preventDefault();
     try {
       const p = Object.fromEntries(new FormData(form));
       if (!selected && store.all().some(x => x.id === p.id)) throw Error('Mã địa danh đã tồn tại. Hãy chọn mã khác.');
       p.coordinates = {latitude:Number(p.latitude),longitude:Number(p.longitude)}; p.position = {left:Number(p.left),top:Number(p.top)}; p.tags = p.tags.split(',').map(t => t.trim()).filter(Boolean);
-      const saved = store.save(p); dirty = false; open(saved); status('Đã lưu trên trình duyệt. Bấm “Xem trên bản đồ” để kiểm tra.');
+      const saved = store.save(p); dirty = false; open(saved);
+      if (firebaseApi && currentUser) {
+        await firebaseApi.savePlace(saved);
+        await firebaseApi.refreshPlaces();
+        status('Đã lưu địa danh lên Firebase và cập nhật bản đồ công khai.');
+      } else if (firebaseApi) {
+        status('Đã lưu trên trình duyệt. Hãy đăng nhập Google để đồng bộ lên Firebase.');
+      } else {
+        status('Đã lưu trên trình duyệt. Firebase chưa sẵn sàng.');
+      }
     } catch(e) { status('Không lưu được: ' + e.message); }
   };
   function download(name, text, type) { const url = URL.createObjectURL(new Blob([text],{type})); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000); }
@@ -50,5 +59,17 @@
   $('new').onclick = () => open(null); $('search').oninput = renderList;
   addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   addEventListener('storage', e => { if (e.key === store.key) status('Dữ liệu đã thay đổi ở tab khác. Hãy tải lại trang trước khi sửa tiếp.'); });
-  open(null); if (store.warning) status(store.warning);
+  $('signIn').onclick = async () => { try { await firebaseApi?.signIn(); } catch (e) { status('Không đăng nhập được Firebase: ' + e.message); } };
+  $('signOut').onclick = async () => { try { await firebaseApi?.signOut(); } catch (e) { status('Không đăng xuất được Firebase: ' + e.message); } };
+  async function initFirebase() {
+    if (!window.VivuFirebaseReady) { $('authLabel').textContent = 'Firebase chưa được cấu hình'; return; }
+    firebaseApi = await window.VivuFirebaseReady;
+    firebaseApi.onAuthChanged(user => {
+      currentUser = user;
+      $('authLabel').textContent = user ? `Đã đăng nhập: ${user.email}` : 'Chưa đăng nhập';
+      $('signIn').hidden = Boolean(user); $('signOut').hidden = !user;
+    });
+    if (firebaseApi.lastError) status('Chưa tải được Firestore: ' + firebaseApi.lastError.message + '. Kiểm tra Firestore Rules.');
+  }
+  open(null); if (store.warning) status(store.warning); initFirebase();
 })();
