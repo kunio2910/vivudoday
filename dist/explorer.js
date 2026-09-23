@@ -10,18 +10,13 @@
     'Nam Bộ':['Đồng Nai','TP. Hồ Chí Minh','Tây Ninh','Đồng Tháp','Vĩnh Long','An Giang','Cần Thơ','Cà Mau']
   };
   let provinceData = [];
-  // Image-space anchors: the supplied artwork is stylized, not a geographic projection.
-  const anchors = {'sapa':[23,11],'hanoi':[37,18],'ha-long':[51,16],'phong-nha':[36,34],'hue':[46,41],'da-nang':[53,45],'hoi-an':[55,48],'my-son':[48,49],'nha-trang':[64,62],'da-lat':[54,65],'can-tho':[36,77],'phu-quoc':[21,72]};
   const $ = id => document.getElementById(id);
-  for (const p of places) {
-    if (p.managed || !anchors[p.id]) anchors[p.id] = [p.position.left, p.position.top];
-    if (p.managed) placeProvinces[p.id] = p.province;
-  }
+  for (const p of places) if (p.managed) placeProvinces[p.id] = p.province;
   addEventListener('storage', e => { if (e.key === window.PlaceStore?.key) location.reload(); });
   const esc = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const normalize = value => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
   function read(key) { try { const x=JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(x)?[...new Set(x.filter(id=>places.some(p=>p.id===id)))]:[]; } catch {return [];} }
-  const state={query:'',category:'all',region:'Tất cả',regionView:null,provinceView:null,saved:read('vne-favorites'),trip:read('vivu-trip'),savedOnly:false,view:'map',zoom:1,selected:places.some(p=>p.id===location.hash.slice(1))?location.hash.slice(1):'da-lat'};
+  const state={query:'',category:'all',region:'Tất cả',regionView:null,provinceView:null,saved:read('vne-favorites'),trip:read('vivu-trip'),savedOnly:false,view:'map',zoom:1.5,selected:places.some(p=>p.id===location.hash.slice(1))?location.hash.slice(1):null};
   document.body.innerHTML = `<header><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">⌁</span><span><b>Vi vu đó đây</b><small>Một Việt Nam, nhiều điều để khám phá</small></span></a><div class="header-actions"><button id="savedToggle" aria-pressed="false">♡ Đã lưu <span id="savedCount"></span></button><button class="primary" id="openTrip">Hành trình <span id="tripCount"></span></button></div></header><main class="layout" id="layout"><aside class="sidebar"><p class="kicker">Khám phá Việt Nam</p><h1>Bạn muốn đi đâu?</h1><p class="muted">Chọn một nơi. Bắt đầu chuyến đi.</p><div class="search"><input type="search" id="search" aria-label="Tìm địa điểm" placeholder="Thử “Da Lat”, “biển”, “phố cổ”…"><button id="clearSearch" aria-label="Xóa tìm kiếm">×</button></div><label for="region">Khu vực</label><select id="region">${window.VIETNAM_REGIONS.map(r=>`<option>${r}</option>`).join('')}</select><div class="chips" id="categories">${window.VIETNAM_CATEGORIES.map(c=>`<button data-category="${c.key}" aria-pressed="${c.key==='all'}">${c.label}</button>`).join('')}</div><div class="row"><button id="viewToggle">Xem danh sách</button><button class="link-button" id="resetFilters">Đặt lại bộ lọc</button></div><div class="results-head"><span id="resultCount" role="status"></span><small>Chọn để khám phá</small></div><div class="results" id="results"></div></aside><section class="map-section" aria-label="Bản đồ địa điểm"><div class="toolbar"><strong>Việt Nam qua từng điểm đến</strong><div class="map-controls"><button id="zoomOut" aria-label="Thu nhỏ">−</button><button id="zoomReset" aria-label="Đặt lại độ phóng">100%</button><button id="zoomIn" aria-label="Phóng to">+</button></div></div><div class="map-window" id="mapWindow"><div class="map-scene" id="scene"><img src="./MAP.png" width="1024" height="1536" alt="Bản đồ minh họa Việt Nam" draggable="false"><div id="provinceLabels" aria-label="Tỉnh thành Việt Nam"></div><div id="markers"></div></div></div><p class="map-note">Bản đồ minh họa · Vị trí trên ảnh mang tính tương đối. Chọn “Chỉ đường” để xem vị trí địa lý trên Google Maps.</p></section><aside class="details" id="details" aria-label="Thông tin địa điểm"></aside></main><dialog id="tripDialog" aria-labelledby="tripTitle"><div class="dialog-head"><div><p class="kicker">Chuyến đi của bạn</p><h2 id="tripTitle">Những điểm muốn ghé</h2></div><button id="closeTrip" aria-label="Đóng hành trình">×</button></div><p class="muted">Thêm địa điểm và sắp xếp theo thứ tự bạn muốn đi.</p><div id="tripContent"></div><p class="tip">Yêu thích và hành trình được lưu trên trình duyệt này. Xuất danh sách để giữ một bản riêng.</p></dialog><div class="toast" id="notice" role="status"></div>`;
   const provinceBrowser=document.createElement('section');
   provinceBrowser.id='provinceBrowser';provinceBrowser.hidden=true;provinceBrowser.innerHTML='<div class="province-browser-head"><strong id="provinceBrowserTitle">Tỉnh/thành trong khu vực</strong><small id="provinceBrowserMeta"></small></div><div class="province-list" id="provinceList"></div>';
@@ -29,23 +24,22 @@
   const provinceRegion=name=>Object.entries(provinceGroups).find(([,names])=>names.includes(name))?.[0]||'Trung Bộ';
   const placeProvinceName=p=>placeProvinces[p.id]||p.province||'';
   const provinceByName=name=>provinceData.find(p=>p.name===name);
-  const provinceImagePositions={
-    'Điện Biên':[28,13],'Lai Châu':[35,10],'Lào Cai':[41,13],'Cao Bằng':[56,11],
-    'Tuyên Quang':[48,16],'Sơn La':[37,20],'Lạng Sơn':[59,17],'Thái Nguyên':[52,20],
-    'Bắc Ninh':[54,23],'Phú Thọ':[44,24],'Hà Nội':[48,26],'Quảng Ninh':[59,22],
-    'Hải Phòng':[57,27],'Hưng Yên':[52,29],'Ninh Bình':[49,32],'Thanh Hóa':[45,35],
-    'Nghệ An':[47,39],'Hà Tĩnh':[50,43],'Quảng Trị':[51,48],'Huế':[53,52],
-    'Đà Nẵng':[57,55],'Quảng Ngãi':[55,62],'Gia Lai':[48,61],'Đắk Lắk':[48,68],
-    'Khánh Hòa':[55,70],'Lâm Đồng':[50,76],'Đồng Nai':[48,79],'Tây Ninh':[41,80],
-    'TP. Hồ Chí Minh':[45,83],'Đồng Tháp':[40,85],'An Giang':[33,85],'Cần Thơ':[43,87],
-    'Vĩnh Long':[43,90],'Cà Mau':[37,94]
-  };
-  const provinceImagePosition=province=>provinceImagePositions[province.name]||[40+(province.center[0]-103.5)*3.4,Math.max(8,Math.min(94,5+(23.5-province.center[1])*5.1))];
+  const countryMapBounds={minLon:102,maxLon:118,minLat:7,maxLat:24};
+  const offshoreIslands=[
+    {name:'Hoàng Sa',longitude:111.75,latitude:16.5},
+    {name:'Trường Sa',longitude:114,latitude:9}
+  ];
+  const coordinateToImage=({longitude,latitude})=>[
+    Math.max(2,Math.min(98,(longitude-countryMapBounds.minLon)/(countryMapBounds.maxLon-countryMapBounds.minLon)*100)),
+    Math.max(2,Math.min(98,(countryMapBounds.maxLat-latitude)/(countryMapBounds.maxLat-countryMapBounds.minLat)*100))
+  ];
   function renderProvinceLabels(){
     const layer=$('provinceLabels');
     if(!layer)return;
     const visibleProvinces=provinceData.filter(province=>!state.regionView||provinceRegion(province.name)===state.regionView);
-    layer.innerHTML=visibleProvinces.map(province=>{const [left,top]=provinceImagePosition(province);return `<button class="province-label ${province.type==='Thành phố'?'city':''}" data-province="${esc(province.name)}" style="left:${left}%;top:${top}%" aria-label="Mở bản đồ ${esc(province.name)}"><i aria-hidden="true"></i><span>${esc(province.name)}</span></button>`;}).join('');
+    const provinceLabels=visibleProvinces.map(province=>{const [left,top]=coordinateToImage({longitude:province.center[0],latitude:province.center[1]});return `<button class="province-label ${province.type==='Thành phố'?'city':''}" data-province="${esc(province.name)}" style="left:${left}%;top:${top}%" aria-label="Mở bản đồ ${esc(province.name)} · ${province.center[1].toFixed(4)}°N, ${province.center[0].toFixed(4)}°E" title="${esc(province.name)} · ${province.center[1].toFixed(4)}°N, ${province.center[0].toFixed(4)}°E"><i aria-hidden="true"></i><span>${esc(province.name)}</span></button>`;}).join('');
+    const islandLabels=state.regionView?'':offshoreIslands.map(island=>{const [left,top]=coordinateToImage({longitude:island.longitude,latitude:island.latitude});return `<span class="island-label" style="left:${left}%;top:${top}%" title="${island.name} · ${island.latitude.toFixed(4)}°N, ${island.longitude.toFixed(4)}°E"><i aria-hidden="true"></i><b>${island.name}</b></span>`;}).join('');
+    layer.innerHTML=provinceLabels+islandLabels;
   }
   const sidebar=document.querySelector('.sidebar');
   document.querySelector('.header-actions').insertAdjacentHTML('afterbegin','<a href="./admin.html" style="color:inherit;padding:10px">Quản lý địa danh</a>');
@@ -84,8 +78,8 @@
     $('savedToggle').setAttribute('aria-pressed',state.savedOnly);
     $('resultCount').textContent=state.provinceView?`${list.length} địa điểm tại ${state.provinceView}`:`${list.length} địa điểm${state.savedOnly?' đã lưu':''}`;
     $('results').innerHTML=list.length?list.map(p=>`<button class="result ${p.id===state.selected?'selected':''}" data-select="${p.id}" aria-pressed="${p.id===state.selected}"><span class="symbol" aria-hidden="true">${icons[p.categoryKey]}</span><span><strong>${esc(p.name)}</strong><small>${placeProvinceName(p)} · ${p.category}</small></span><span class="chevron" aria-hidden="true">›</span></button>`).join(''):`<div class="empty">${state.savedOnly?'Chưa có địa điểm đã lưu phù hợp.':'Chưa có địa điểm nổi bật trong tỉnh này.'}<br>Hãy chọn tỉnh khác hoặc đặt lại bộ lọc.</div>`;
-    $('markers').innerHTML=list.map(p=>{const [x,y]=anchors[p.id];const active=p.id===state.selected;return `<button class="marker ${active?'selected':''}" data-select="${p.id}" data-side="${['my-son','hue','sapa','can-tho','phu-quoc'].includes(p.id)?'left':p.id==='hoi-an'?'below':'right'}" style="left:${x}%;top:${y}%" aria-label="Khám phá ${esc(p.name)}" aria-pressed="${active}"><span>${esc(p.name)}</span>${active?`<i class="marker-halo" aria-hidden="true"></i><i class="marker-ray" aria-hidden="true"></i><div class="marker-thumbnail" data-province-open="${esc(placeProvinceName(p))}" role="button" tabindex="0" aria-label="Mở bản đồ ${esc(placeProvinceName(p))}"><img src="${esc(p.image)}" alt="${esc(p.imageAlt)}" referrerpolicy="no-referrer"><b>${esc(p.name)}</b><em>Mở bản đồ ${esc(placeProvinceName(p))}</em></div>`:''}</button>`;}).join('');
-    $('markers').querySelectorAll('.marker-thumbnail img').forEach(img=>{img.onerror=()=>{img.hidden=true;img.closest('.marker-thumbnail').classList.add('image-unavailable');img.closest('.marker-thumbnail').querySelector('em').textContent='Chưa tải được ảnh';};});
+    // Trang bản đồ quốc gia chỉ hiển thị tỉnh/thành; địa danh sẽ xuất hiện trong bản đồ chi tiết.
+    $('markers').innerHTML='';
     const province=state.provinceView&&provinceByName(state.provinceView);
     if(province){renderProvinceMap();renderProvinceDetails(province);return;}
     const p=places.find(p=>p.id===state.selected);
@@ -100,8 +94,8 @@
   $('resetFilters').onclick=()=>{state.query='';state.category='all';state.region='Tất cả';state.regionView=null;state.provinceView=null;state.savedOnly=false;$('search').value='';$('region').value='Tất cả';document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.category==='all'));applyRegionView();render();};
   $('savedToggle').onclick=()=>{state.savedOnly=!state.savedOnly;render();};
   $('viewToggle').onclick=()=>{state.view=state.view==='map'?'list':'map';$('layout').classList.toggle('list-mode',state.view==='list');$('viewToggle').textContent=state.view==='map'?'Xem danh sách':'Xem bản đồ';};
-  function zoom(delta){state.zoom=Math.max(1,Math.min(2,state.zoom+delta));$('scene').style.width=`${state.zoom*100}%`;$('scene').style.maxWidth='none';$('scene').style.flexShrink='0';$('zoomReset').textContent=`${Math.round(state.zoom*100)}%`;$('zoomOut').disabled=state.zoom===1;$('zoomIn').disabled=state.zoom===2;}
-  $('zoomIn').onclick=()=>zoom(.25);$('zoomOut').onclick=()=>zoom(-.25);$('zoomReset').onclick=()=>{state.zoom=1;zoom(0);$('mapWindow').scrollTo(0,0);};
+  function zoom(delta){state.zoom=Math.max(.75,Math.min(3,Number((state.zoom+delta).toFixed(2))));$('scene').style.width=`${state.zoom*100}%`;$('scene').style.height='auto';$('scene').style.maxWidth='none';$('scene').style.flexShrink='0';$('zoomReset').textContent=`${Math.round(state.zoom*100)}%`;$('zoomOut').disabled=state.zoom<=.75;$('zoomIn').disabled=state.zoom>=3;}
+  $('zoomIn').onclick=()=>zoom(.25);$('zoomOut').onclick=()=>zoom(-.25);$('zoomReset').onclick=()=>{state.zoom=1.5;zoom(0);$('mapWindow').scrollTo(0,0);};
   function renderTrip(){
     $('tripContent').innerHTML=state.trip.length?`<ol class="trip-list">${state.trip.map((id,i)=>{const p=places.find(p=>p.id===id);return `<li><div><strong>${i+1}. ${esc(p.name)}</strong><small>${p.region}</small></div><div class="row"><button data-move="${i}" data-step="-1" aria-label="Đưa ${esc(p.name)} lên" ${i===0?'disabled':''}>↑</button><button data-move="${i}" data-step="1" aria-label="Đưa ${esc(p.name)} xuống" ${i===state.trip.length-1?'disabled':''}>↓</button><button data-remove="${id}" aria-label="Bỏ ${esc(p.name)}">×</button></div></li>`;}).join('')}</ol><div class="trip-footer"><button id="exportTrip" class="primary">Xuất hành trình (.txt)</button></div>`:`<div class="empty">Hành trình đang trống.<br>Chọn địa điểm và nhấn “Thêm vào hành trình”.</div><button id="sampleTrip">Thêm gợi ý: Huế → Đà Nẵng → Hội An → Mỹ Sơn</button>`;
     $('sampleTrip')?.addEventListener('click',()=>{state.trip=['hue','da-nang','hoi-an','my-son'];saveTrip();});
@@ -119,6 +113,10 @@
     'Nam Bộ':{slug:'nam-bo',label:'Nam Bộ',description:'Miền sông nước và những đảo xanh',scale:1.8,x:'0%',y:'-43%'}
   };
   const mapWindow=$('mapWindow'), scene=$('scene'), regionAreas=document.createElement('div');
+  const regionLegend=document.createElement('nav');
+  regionLegend.id='regionLegend';regionLegend.setAttribute('aria-label','Chọn khu vực');
+  regionLegend.innerHTML=Object.values(regionViews).map(r=>`<button class="region-chip ${r.slug}" data-region-view="${r.label}" aria-pressed="false">${r.label}</button>`).join('');
+  document.querySelector('.map-section').insertBefore(regionLegend,mapWindow);
   mapWindow.insertAdjacentHTML('beforeend', '<button id="open3d" class="map-3d-launcher" type="button" aria-label="Mở bản đồ Việt Nam 3D"><span class="map-3d-cube" aria-hidden="true">◇</span><span><strong>3D</strong><small>Xem bản đồ không gian</small></span></button><section class="map-3d-view" id="map3dView" hidden aria-label="Bản đồ Việt Nam 3D"><div class="map-3d-head"><div><span class="map-3d-eyebrow">BẢN ĐỒ TƯƠNG TÁC</span><strong>Việt Nam 3D</strong></div><button id="close3d" type="button">← Bản đồ phẳng</button></div><div class="map-3d-stage" id="map3dStage" tabindex="0" role="application" aria-label="Kéo chuột để xoay bản đồ Việt Nam 3D"><div class="map-3d-grid" aria-hidden="true"></div><div class="map-3d-card" id="map3dCard"><div class="map-3d-depth depth-one" aria-hidden="true"></div><div class="map-3d-depth depth-two" aria-hidden="true"></div><div class="map-3d-surface"><img src="./MAP.png" width="1024" height="1536" alt="Mô hình 3D bản đồ Việt Nam" draggable="false"><span class="map-3d-river river-red" aria-hidden="true"></span><span class="map-3d-river river-mekong" aria-hidden="true"></span><span class="map-3d-city city-hanoi">Hà Nội</span><span class="map-3d-city city-danang">Đà Nẵng</span><span class="map-3d-city city-hcm">TP. Hồ Chí Minh</span><span class="map-3d-city city-cantho">Cần Thơ</span></div></div><div class="map-3d-compass" aria-hidden="true"><span>N</span><i>✦</i></div><div class="map-3d-hint"><span class="map-3d-mouse" aria-hidden="true">↔</span><span><strong>Kéo chuột để xoay</strong><small>Cuộn để phóng to · phím mũi tên để điều khiển</small></span></div></div><div class="map-3d-controls" aria-label="Điều khiển bản đồ 3D"><button id="map3dZoomOut" type="button" aria-label="Thu nhỏ bản đồ 3D">−</button><button id="map3dReset" type="button" aria-label="Đặt lại góc nhìn bản đồ 3D">100%</button><button id="map3dZoomIn" type="button" aria-label="Phóng to bản đồ 3D">+</button><span class="map-3d-control-note">↻ Xoay ngang / dọc</span></div></section>');
   const map3dView=$('map3dView'), map3dStage=$('map3dStage'), map3dCard=$('map3dCard');
   const map3d={rotateX:-18,rotateY:12,zoom:1,drag:null};
@@ -162,7 +160,7 @@
     if(!province){notify('Chưa có dữ liệu bản đồ cho tỉnh này');return;}
     setExplore(false);
     state.provinceView=name;state.regionView=provinceRegion(name);state.region=state.regionView;state.savedOnly=false;state.view='map';$('region').value=state.region;$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';
-    const first=places.find(p=>placeProvinceName(p)===name);state.selected=first?.id||null;
+    state.selected=null;
     applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);
   }
   regionAreas.id='regionAreas';regionAreas.setAttribute('aria-label','Chọn khu vực trên bản đồ');scene.appendChild(regionAreas);
@@ -170,23 +168,24 @@
   toolbarTitle.id='mapTitle';toolbarTitle.insertAdjacentHTML('afterend','<small id="mapCrumb">Bản đồ toàn quốc · Chọn một khu vực trên ảnh</small>');
   toolbar.querySelector('.map-controls').insertAdjacentHTML('afterbegin','<button id="backToCountry" hidden>← Việt Nam</button>');
   function renderRegionAreas(){
-    regionAreas.innerHTML=state.regionView?'':Object.values(regionViews).map(r=>`<button class="region-hotspot ${r.slug}" data-region-view="${r.label}" aria-label="Mở bản đồ ${r.label}"><span>${r.label}</span></button>`).join('');
+    regionAreas.innerHTML=state.regionView?'':Object.values(regionViews).map(r=>`<button class="region-hotspot ${r.slug}" data-region-view="${r.label}" aria-label="Mở bản đồ ${r.label}"></button>`).join('');
+    regionLegend.querySelectorAll('[data-region-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.regionView===state.regionView)));
   }
   function applyRegionView(){
     const r=state.regionView?regionViews[state.regionView]:null;
     const province=state.provinceView&&provinceByName(state.provinceView);
     mapWindow.classList.toggle('region-mode',Boolean(r&&!province));mapWindow.classList.toggle('province-mode',Boolean(province));scene.hidden=Boolean(province);provinceLayer.hidden=!province;scene.className=`map-scene${r&&!province?' region-view region-'+r.slug:''}`;
     if(province){scene.style.removeProperty('--region-scale');scene.style.removeProperty('--region-x');scene.style.removeProperty('--region-y');toolbarTitle.textContent=`Bản đồ ${province.name}`;$('mapCrumb').textContent=`${province.type} · ${province.area.toLocaleString('vi-VN')} km² · ${provinceRegion(province.name)}`;$('backToCountry').textContent=`← ${state.regionView||'Khu vực'}`;$('backToCountry').hidden=false;renderProvinceMap();}
-    else if(r){scene.style.setProperty('--region-scale',r.scale);scene.style.setProperty('--region-x',r.x);scene.style.setProperty('--region-y',r.y);toolbarTitle.textContent=`Bản đồ ${r.label}`;$('mapCrumb').textContent=`${r.description} · ${provinceData.filter(p=>provinceRegion(p.name)===r.label).length||visible().filter(p=>p.region===r.label).length} tỉnh/thành`;$('backToCountry').textContent='← Việt Nam';$('backToCountry').hidden=false;provinceLayer.innerHTML='';}
+    else if(r){scene.style.setProperty('--region-scale','1');scene.style.setProperty('--region-x','0%');scene.style.setProperty('--region-y','0%');toolbarTitle.textContent=`Bản đồ ${r.label}`;$('mapCrumb').textContent=`${r.description} · ${provinceData.filter(p=>provinceRegion(p.name)===r.label).length||visible().filter(p=>p.region===r.label).length} tỉnh/thành`;$('backToCountry').textContent='← Việt Nam';$('backToCountry').hidden=false;provinceLayer.innerHTML='';}
     else{scene.style.removeProperty('--region-scale');scene.style.removeProperty('--region-x');scene.style.removeProperty('--region-y');toolbarTitle.textContent='Việt Nam qua từng điểm đến';$('mapCrumb').textContent='Bản đồ toàn quốc · Chọn một khu vực trên ảnh';$('backToCountry').hidden=true;provinceLayer.innerHTML='';}
     renderRegionAreas();
   }
-  function openRegion(name){setExplore(false);state.provinceView=null;state.regionView=name;state.region=name;state.savedOnly=false;$('region').value=name;state.view='map';$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';const first=places.find(p=>p.region===name);if(first)state.selected=first.id;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);}
+  function openRegion(name){setExplore(false);state.provinceView=null;state.regionView=name;state.region=name;state.savedOnly=false;state.selected=null;$('region').value=name;state.view='map';$('layout').classList.remove('list-mode');$('viewToggle').textContent='Xem danh sách';applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã mở bản đồ ${name}`);}
   document.addEventListener('click',e=>{const b=e.target.closest('[data-region-view]');if(b)openRegion(b.dataset.regionView);});
   document.addEventListener('click',e=>{const shape=e.target.closest?.('[data-province]');if(shape&&shape.tagName.toLowerCase()!=='button')openProvince(shape.dataset.province);});
   document.addEventListener('keydown',e=>{const thumbnail=e.target.closest?.('[data-province-open]');if(thumbnail&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openProvince(thumbnail.dataset.provinceOpen);return;}const shape=e.target.closest?.('[data-province]');if(shape&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openProvince(shape.dataset.province);}});
   $('backToCountry').onclick=()=>{if(state.provinceView){state.provinceView=null;applyRegionView();render();mapWindow.scrollTo(0,0);notify(`Đã trở về bản đồ ${state.regionView}`);}else{state.regionView=null;state.region='Tất cả';$('region').value='Tất cả';applyRegionView();render();mapWindow.scrollTo(0,0);notify('Đã trở về bản đồ Việt Nam');}};
-  renderRegionAreas();applyRegionView();render();$('zoomOut').disabled=true;
+  renderRegionAreas();applyRegionView();render();zoom(0);
   fetch('./provinces-source.json',{cache:'force-cache'}).then(response=>{if(!response.ok)throw new Error('province-data');return response.json();}).then(payload=>{provinceData=Array.isArray(payload.provinces)?payload.provinces:[];if(state.provinceView)applyRegionView();render();}).catch(()=>notify('Không tải được dữ liệu bản đồ tỉnh/thành'));
   addEventListener('vivu:places-ready', () => { renderRegionAreas(); applyRegionView(); render(); notify('Đã đồng bộ địa danh từ Firebase'); });
 })();

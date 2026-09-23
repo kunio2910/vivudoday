@@ -60,3 +60,36 @@
   .region-hotspot span{top:8px;left:8px;padding:6px 9px;font-size:12px}
   #open3d{right:10px}
 }
+
+/* Country map: 150% default size with intentional scrolling for precise inspection. */
+.map-window{display:block!important;overflow:auto;scrollbar-width:auto;scrollbar-color:#126957 #edf4f1}
+.map-scene{width:150%;height:auto;min-width:0;max-width:none;margin:0;aspect-ratio:2/3;transform-origin:top left}
+.map-scene>img{width:100%;height:auto;min-height:0;object-fit:contain}
+#markers{display:none}
+
+/* Region names live in this legend, outside the artwork. */
+#regionAreas .region-hotspot span{display:none}
+#regionLegend{display:flex;flex-wrap:wrap;gap:8px;margin:-2px 0 12px;position:relative;z-index:5}
+.region-chip{padding:8px 13px;border:2px solid transparent;border-radius:999px;font-size:13px;font-weight:800;line-height:1;background:#eaf5ee;color:#126957;box-shadow:0 3px 10px #183a3718}
+.region-chip.bac-bo{border-color:#126957;color:#0d6657;background:#e5f5ee}
+.region-chip.trung-bo{border-color:#a34f20;color:#8a3d18;background:#fff0e7}
+.region-chip.tay-nguyen{border-color:#536d2d;color:#46601f;background:#eef5df}
+.region-chip.nam-bo{border-color:#1b6683;color:#155572;background:#e8f4f8}
+.region-chip[aria-pressed=true]{color:#fff;box-shadow:0 4px 15px #183a3738}
+.region-chip.bac-bo[aria-pressed=true]{background:#0d6657}
+.region-chip.trung-bo[aria-pressed=true]{background:#a34f20}
+.region-chip.tay-nguyen[aria-pressed=true]{background:#536d2d}
+.region-chip.nam-bo[aria-pressed=true]{background:#1b6683}
+
+/* Dots are plotted from province-source coordinates, not hand-tuned image anchors. */
+.province-label{z-index:3}
+.province-label span{font-size:9px}
+.island-label{position:absolute;z-index:4;display:flex;align-items:center;gap:4px;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none}
+.island-label i{width:8px;height:8px;border:1px solid #fff;border-radius:50%;background:#e0a52f;box-shadow:0 0 0 3px #e0a52f45,0 2px 5px #183a3760}
+.island-label b{padding:3px 6px;border:1px solid #e0a52f;border-radius:6px;background:#fff8dc;color:#705318;font-size:9px;box-shadow:0 2px 8px #183a3725}
+@media(max-width:680px){
+  #regionLegend{gap:6px;margin-bottom:9px}
+  .region-chip{padding:7px 9px;font-size:11px}
+  .province-label span{font-size:8px}
+  .island-label b{font-size:8px;padding:2px 4px}
+}
