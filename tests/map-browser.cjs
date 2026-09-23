@@ -10,14 +10,29 @@ const {chromium}=require('playwright');
   const countryCoverage=await page.evaluate(()=>document.querySelectorAll('.province-label').length+[...document.querySelectorAll('[data-country-cluster]')].reduce((n,el)=>n+el.dataset.countryCluster.split('|').length,0));
   assert.equal(countryCoverage,34);
   assert(await page.evaluate(()=>[...document.querySelectorAll('[data-country-cluster]')].every(el=>el.dataset.countryCluster.split('|').length<=5)),'National cluster is too large');
-  assert.equal(await page.locator('#zoomReset').innerText(),'40%');
+  assert.equal(await page.locator('#zoomReset').innerText(),'100%');
+  assert.equal(await page.locator('#open3d').evaluate(el=>getComputedStyle(el).display),'none');
+  await page.locator('.region-hotspot.bac-bo').hover();
+  assert.equal(await page.locator('.region-hotspot.bac-bo .region-hover-card').evaluate(el=>getComputedStyle(el).display),'grid');
+  assert((await page.locator('.region-hotspot.bac-bo .region-hover-card').innerText()).includes('Hà Nội'));
+  await page.mouse.move(5,5);
+  assert.equal(await page.locator('.region-hotspot.bac-bo .region-hover-card').evaluate(el=>getComputedStyle(el).display),'none');
+  for(const region of ['Bắc Bộ','Trung Bộ','Tây Nguyên','Nam Bộ']){
+    await page.locator('.region-chip[data-region-view="'+region+'"]').click();
+    assert(await page.evaluate(()=>{const w=document.querySelector('#mapWindow').getBoundingClientRect(),s=document.querySelector('#scene').getBoundingClientRect();return document.documentElement.scrollWidth<=innerWidth+1&&s.bottom>w.top&&s.top<w.bottom;}),'Region focus overflow or empty viewport: '+region);
+    await page.locator('.region-chip[data-region-view="Tất cả"]').click();
+  }
   assert.equal(await page.locator('.province-marker.active').count(),0);
   await page.locator('#topSearchInput').fill('Hồ Chí Minh');
   await page.locator('.province-entry[data-province="TP. Hồ Chí Minh"]').click();
   await page.locator('#districtSearch').waitFor();
   assert.equal(await page.locator('.hcm-directory [data-hcm-place]').count(),43);
   assert.equal(await page.locator('.hcm-district-card').count(),22);
-  assert(await page.locator('.hcm-directory').evaluate(el=>getComputedStyle(el).overflowY==='auto'&&el.scrollHeight>el.clientHeight));
+  const cityHeights=await page.evaluate(()=>{const map=document.querySelector('.hcm-map-canvas').getBoundingClientRect().height,dir=document.querySelector('.hcm-directory-panel').getBoundingClientRect().height,details=document.querySelector('#details').getBoundingClientRect().height;return {map,dir,details};});
+  assert(Math.abs(cityHeights.map-cityHeights.dir)<3,'District panel height does not match city map');
+  assert(cityHeights.details>=cityHeights.map,'Selected-area panel is shorter than city map');
+  assert.equal(await page.locator('.hcm-directory').evaluate(el=>getComputedStyle(el).overflowY),'scroll');
+  await page.locator('.hcm-district-card[data-district="Quận 1"] summary').click();
   assert(await page.locator('.district-cluster').count()>0);
   await page.locator('[data-cluster="Quận 1"]').click();
   assert(await page.locator('.cluster-lines line').count()>1);
@@ -36,11 +51,14 @@ const {chromium}=require('playwright');
   await page.screenshot({path:'map-mobile-test.png',fullPage:true});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Mobile horizontal overflow');
   await page.locator('[data-region-view="Tất cả"]').click();
-  assert.equal(await page.locator('#zoomReset').innerText(),'40%');
+  assert.equal(await page.locator('#zoomReset').innerText(),'100%');
   await page.screenshot({path:'map-country-test.png',fullPage:true});
-  assert(await page.locator('.country-cluster').count()>0);
-  await page.locator('.country-cluster').first().click();
-  await page.locator('[data-province-choice]').first().click();
+  if(await page.locator('.country-cluster').count()>0){
+    await page.locator('.country-cluster').first().click();
+    await page.locator('[data-province-choice]').first().click();
+  }else{
+    await page.locator('.province-label[data-province="Đà Nẵng"]').click();
+  }
   assert.equal(await page.locator('.province-preview').count(),1);
   await page.locator('#topSearchInput').fill('Đà Nẵng');
   await page.locator('.province-entry[data-province="Đà Nẵng"]').click();

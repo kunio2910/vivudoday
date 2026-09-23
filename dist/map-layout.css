@@ -60,3 +60,29 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 @media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}.details{position:static}.hcm-map-layout{grid-template-columns:220px minmax(0,1fr)}}
 @media(max-width:680px){.layout{padding:8px;gap:12px}.hcm-map-layout{display:flex;flex-direction:column}.hcm-directory-panel{position:static;width:100%;order:0;box-sizing:border-box}.hcm-directory{max-height:220px;min-height:0}.hcm-map-canvas{order:1}.hcm-map-intro{flex-wrap:wrap}.toolbar{flex-wrap:wrap}.hcm-place-preview{max-width:190px}.header-actions{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
+
+/* Current national map controls use 100% as the fit-to-panel baseline. */
+.map-section #open3d{display:none!important}
+.map-window.region-mode{height:min(78svh,900px);min-height:560px;overflow:hidden!important;display:block!important}
+.map-window.region-mode .map-scene{width:100%;max-width:none;margin:0}
+.region-hotspot .region-hover-card{display:none!important;position:absolute;z-index:20;top:12px;left:12px;width:min(310px,calc(100% - 24px));padding:11px 13px;border:1px solid #fff;border-radius:12px;background:#163f39ee;color:#fff;text-align:left;box-shadow:0 10px 30px #183a3750;pointer-events:none}
+.region-hotspot:hover .region-hover-card,.region-hotspot:focus-visible .region-hover-card{display:grid!important;gap:5px}
+.region-hover-card strong{font-size:14px}.region-hover-card small{color:#e3f4ed;font-size:11px;line-height:1.45;white-space:normal}
+
+/* The city directory, city map and selected-area panel share one desktop height. */
+.hcm-map-intro{max-width:none!important;width:100%;margin-left:0!important;margin-right:0!important}
+.hcm-map-layout{max-width:none!important;width:100%;margin-left:0!important;margin-right:0!important;align-items:stretch!important}
+.hcm-directory-panel{height:auto;min-height:0;display:flex;flex-direction:column;align-self:stretch}
+.hcm-directory{flex:1;max-height:none;min-height:0;overflow-y:scroll}
+.layout.hcm-layout{align-items:stretch}
+.layout.hcm-layout>.details{height:auto;min-height:0;align-self:stretch;box-sizing:border-box}
+
+@media(max-width:900px){
+  .hcm-map-layout{align-items:start!important}
+  .hcm-directory-panel{height:auto}
+  .hcm-directory{max-height:calc(100dvh - 260px);min-height:180px;overflow-y:auto}
+}
+@media(max-width:680px){
+  .map-window.region-mode{height:72svh;min-height:460px}
+  .hcm-directory{max-height:220px;min-height:0}
+}

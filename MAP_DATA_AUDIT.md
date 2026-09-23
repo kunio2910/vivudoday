@@ -30,8 +30,11 @@
 ## Interaction and QA
 
 - National markers cluster by rendered pixel distance; province markers cluster with an accessible selection list. HCMC clusters by district with radial expansion and leader lines.
+- The national map now uses `1.0` as its 100% fit-to-panel baseline. The controls step by 25 percentage points from 50% to 250%; region focus uses a bounded viewport and recalibrated translation values for that baseline.
+- The 3D launcher is hidden with a final UI rule. The 3D markup, `map3d-entry.js`, and `map3d.html` remain in the project for a future rollback or re-enable.
+- Hovering a dashed national region shows the province names in that region and hides the list when the pointer leaves.
 - Searchable, collapsible district directory retains scroll position on selection. Only that panel scrolls internally; the map participates in page scrolling.
-- Desktop three-column composition; stacked panels on mobile. Province selection now shows the selected landmark details and preview.
+- Desktop three-column composition; stacked panels on mobile. In the city view, the city map, district directory and selected-area details are aligned to the map height on desktop. Province selection now shows the selected landmark details and preview.
 - `node tests/map-audit.cjs`: validates all province anchors, catalog coverage and interior representative points.
 - `node tests/map-browser.cjs`: Playwright smoke tests at 1440px/390px; requires Playwright, installed Edge (or BROWSER_CHANNEL), and a static server on port 4173.
 
