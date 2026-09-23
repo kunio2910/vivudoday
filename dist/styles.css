@@ -98,7 +98,7 @@ kbd { min-width: 18px; padding: 2px 5px; border: 1px solid var(--line-strong); b
 .view-toggle { height: 27px; padding: 0 10px; border: 0; background: transparent; color: var(--muted-2); font-size: 10px; letter-spacing: .08em; }
 .view-toggle + .view-toggle { border-left: 1px solid var(--line); }
 .view-toggle.active { background: rgba(101,215,189,.1); color: var(--teal); }
-.map-viewport { position: relative; min-height: 608px; height: calc(100svh - 164px); max-height: 820px; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(ellipse at 50% 44%, rgba(21, 96, 91, .17), transparent 48%), linear-gradient(135deg, #0a1d23, #08161d 60%, #091b21); isolation: isolate; transition: opacity .2s ease; }
+.map-viewport { position: relative; min-height: 608px; height: calc(100svh - 164px); max-height: 820px; overflow: hidden; border: 1px solid var(--line); background: #f7f8f2; isolation: isolate; transition: opacity .2s ease; }
 .map-viewport.is-hidden { display: none; }
 .map-grid { position: absolute; inset: 0; opacity: .25; background-image: linear-gradient(rgba(142, 202, 186, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(142, 202, 186, .08) 1px, transparent 1px); background-size: 72px 72px; mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%); }
 .map-grid::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 78px, rgba(101,215,189,.03) 79px 80px); }
@@ -110,8 +110,8 @@ kbd { min-width: 18px; padding: 2px 5px; border: 1px solid var(--line-strong); b
 .map-title-lockup small { color: var(--teal-dark); font-size: 8px; letter-spacing: .1em; }
 .map-orbit { position: absolute; left: 50%; top: 50%; width: 74%; height: 37%; border: 1px solid rgba(101, 215, 189, .11); border-radius: 50%; transform: translate(-50%, -50%) rotate(-18deg); pointer-events: none; }
 .orbit-two { width: 60%; height: 27%; transform: translate(-50%, -50%) rotate(17deg); border-color: rgba(244, 179, 111, .08); }.orbit-three { width: 44%; height: 18%; transform: translate(-50%, -50%) rotate(-27deg); border-color: rgba(101, 215, 189, .07); }
-.map-art { position: absolute; left: 50%; top: 51%; width: min(58%, 500px); height: 86%; transform: translate(-50%, -50%) scale(var(--map-zoom)) rotateX(53deg) rotateZ(-6deg); transform-style: preserve-3d; transition: transform .8s cubic-bezier(.2,.8,.2,1); filter: drop-shadow(0 28px 20px rgba(0,0,0,.52)); pointer-events: none; }
-.journey-active .map-art { transform: translate(-55%, -50%) scale(var(--map-zoom)) rotateX(53deg) rotateZ(-6deg); }
+.map-art { position: absolute; left: 50%; top: 50%; height: min(94%, 800px); aspect-ratio: 2 / 3; transform: translate(-50%, -50%) scale(var(--map-zoom)); transform-origin: center; transition: transform .8s cubic-bezier(.2,.8,.2,1); filter: drop-shadow(0 24px 22px rgba(31,62,52,.28)); pointer-events: none; }
+.journey-active .map-art { transform: translate(-50%, -50%) scale(var(--map-zoom)); }
 .vietnam-map { width: 100%; height: 100%; overflow: visible; }
 .map-shadow { fill: #020b11; opacity: .85; transform: translate(20px, 34px); }
 .map-glow { fill: #2b958e; opacity: .38; filter: url(#landGlow); transform: translate(-1px, 4px); }
@@ -162,3 +162,19 @@ kbd { min-width: 18px; padding: 2px 5px; border: 1px solid var(--line-strong); b
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+.map-image-art { overflow: visible; }
+.map-image { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: fill; user-select: none; pointer-events: none; }
+.map-image-art .marker-layer { pointer-events: auto; }
+.map-image-art .route-label { left: 59%; bottom: 47%; }
+.map-viewport .coordinate { color: rgba(49, 93, 85, .48); }
+.map-viewport .map-title-lockup span,
+.map-viewport .map-title-lockup small { color: #5b7772; }
+.map-viewport .map-title-lockup strong { color: #1e4c4a; }
+.map-viewport .map-title-lockup small { color: #3f8374; }
+.map-viewport .map-orbit { border-color: rgba(40, 104, 91, .14); }
+.map-viewport .map-legend { color: #536f6a; }
+.map-viewport .map-scale { color: #536f6a; }
+.map-viewport .map-controls { border-color: rgba(41, 86, 78, .24); background: rgba(255,255,255,.78); }
+.map-viewport .map-controls button { color: #315f58; border-color: rgba(41, 86, 78, .18); }
+.map-viewport .map-controls button:hover { color: #14584b; background: rgba(101,215,189,.14); }

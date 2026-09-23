@@ -68,13 +68,23 @@
       <button class="region-pill ${state.region === region ? "active" : ""}" type="button" data-region="${region}">${region}</button>`).join("");
   }
 
+  const MAP_BOUNDS = { west: 103, east: 109.6, north: 23.5, south: 8.5, left: 7, right: 66, top: 2, bottom: 89 };
+
+  function getMapPosition(place) {
+    if (!place.coordinates) return place.position;
+    const { latitude, longitude } = place.coordinates;
+    return {
+      left: MAP_BOUNDS.left + ((longitude - MAP_BOUNDS.west) / (MAP_BOUNDS.east - MAP_BOUNDS.west)) * (MAP_BOUNDS.right - MAP_BOUNDS.left),
+      top: MAP_BOUNDS.top + ((MAP_BOUNDS.north - latitude) / (MAP_BOUNDS.north - MAP_BOUNDS.south)) * (MAP_BOUNDS.bottom - MAP_BOUNDS.top)
+    };
+  }
   function renderMarkers() {
     const visible = filteredPlaces();
     els.visibleCount.textContent = visible.length.toString().padStart(2, "0");
     els.markerLayer.innerHTML = visible.map(place => {
       const isActive = state.selectedId === place.id;
       const isFavorite = state.favorites.includes(place.id);
-      return `<button class="map-marker ${isActive ? "active" : ""}" style="left:${place.position.left}%;top:${place.position.top}%" type="button" data-place-id="${place.id}" aria-label="Khám phá ${escapeHtml(place.name)}">
+      return `<button class="map-marker ${isActive ? "active" : ""}" style="left:${getMapPosition(place).left}%;top:${getMapPosition(place).top}%" type="button" data-place-id="${place.id}" aria-label="Khám phá ${escapeHtml(place.name)}">
         <span class="marker-beam"></span><span class="marker-core"></span><span class="marker-pulse"></span>
         <span class="marker-label"><small>${escapeHtml(place.province)}</small><strong>${escapeHtml(place.name)}</strong>${isFavorite ? "<i>♥</i>" : ""}</span>
       </button>`;
