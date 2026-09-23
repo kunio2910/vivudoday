@@ -4,9 +4,9 @@
 .details{position:sticky;top:20px;height:auto;max-height:none;overflow:visible}
 .toolbar .map-3d-launcher{position:static;inset:auto;box-shadow:none;padding:5px 10px;border-radius:9px;gap:6px}
 .toolbar .map-3d-launcher small{display:none}.toolbar .map-3d-cube{width:22px;height:22px;font-size:16px}
-#mapWindow.hcm-mode,#mapWindow.province-mode{display:block!important;height:auto!important;overflow:visible!important;min-height:0}
-#hcmLayer,#provinceLayer{position:relative!important;inset:auto!important;height:auto;overflow:visible!important;width:100%}
-#hcmLayer[hidden],#provinceLayer[hidden]{display:none!important}
+#mapWindow.hcm-mode,#mapWindow.hanoi-mode,#mapWindow.danang-mode,#mapWindow.province-mode{display:block!important;height:auto!important;overflow:visible!important;min-height:0}
+#hcmLayer,#hanoiLayer,#daNangLayer,#provinceLayer{position:relative!important;inset:auto!important;height:auto;overflow:visible!important;width:100%}
+#hcmLayer[hidden],#hanoiLayer[hidden],#daNangLayer[hidden],#provinceLayer[hidden]{display:none!important}
 #mapWindow.province-mode #provinceLayer{transform:none;min-width:0;display:block;width:100%}
 .province-point-choices{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px;background:#fff;border-top:1px solid #d9e6df}.province-point-choices strong{width:100%}.province-point-choices button{font-size:13px}.province-point-choices .cluster-match{outline:2px solid #cf9a37}
 .province-place-dot>span:not(.province-landmark-preview){display:none}.province-place-dot:hover>span,.province-place-dot:focus-visible>span{display:block}
@@ -40,7 +40,7 @@
 #provinceLabels .country-cluster{z-index:100!important;pointer-events:auto}
 .country-choices{position:absolute;left:50%;top:5%;transform:translateX(-50%);width:220px;max-height:340px;overflow-y:auto;padding:12px;background:#fff;border:1px solid #bad6c5;border-radius:14px;box-shadow:0 10px 40px #183a3740;z-index:40;pointer-events:auto}
 .country-choices>button{display:block;width:100%;margin-top:6px;text-align:left}.country-choices>[data-close-choices]{float:right;width:auto;margin:0;padding:0 8px}
-.hcm-mode .map-3d-launcher,.province-mode .map-3d-launcher{display:none}
+.hcm-mode .map-3d-launcher,.hanoi-mode .map-3d-launcher,.danang-mode .map-3d-launcher,.province-mode .map-3d-launcher{display:none}
 .province-marker{pointer-events:none}.province-label,.province-preview{pointer-events:auto}
 .hcm-map-canvas>img{width:100%;height:auto;display:block}
 .cluster-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
@@ -76,6 +76,24 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .hcm-directory{flex:1;max-height:none;min-height:0;overflow-y:scroll}
 .layout.hcm-layout{align-items:stretch}
 .layout.hcm-layout>.details{height:auto;min-height:0;align-self:stretch;box-sizing:border-box}
+
+/* Region hover labels sit on the national province dots, not in a card. */
+#regionAreas .region-hover-labels{display:none;position:absolute;inset:0;z-index:30;pointer-events:none}
+#regionAreas[data-hover-region="bac-bo"] .region-hover-labels[data-region="bac-bo"],
+#regionAreas[data-hover-region="trung-bo"] .region-hover-labels[data-region="trung-bo"],
+#regionAreas[data-hover-region="tay-nguyen"] .region-hover-labels[data-region="tay-nguyen"],
+#regionAreas[data-hover-region="nam-bo"] .region-hover-labels[data-region="nam-bo"]{display:block}
+#regionAreas .region-hover-labels b{position:absolute;display:flex;align-items:center;gap:4px;transform:translate(-50%,-100%);padding:4px 7px;border:1px solid #fff;border-radius:999px;background:#183a37e8;color:#fff;font-size:11px;font-weight:700;line-height:1.1;white-space:nowrap;box-shadow:0 3px 12px #183a3750}
+#regionAreas .region-hover-labels b i{width:7px;height:7px;border-radius:50%;background:#ffd16e;box-shadow:0 0 0 2px #fff,0 0 10px #ffd16e;flex:0 0 7px}
+
+/* Hà Nội reuses the city directory shell with an SVG province map. */
+.hanoi-map-canvas{background:linear-gradient(145deg,#eff8f3,#fff);border-radius:14px;overflow:hidden}
+.hanoi-map-canvas .province-svg{position:absolute;inset:0;width:100%;height:100%;}
+.hanoi-map-canvas .hcm-landmark-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+.hanoi-place-marker{pointer-events:auto}
+.hanoi-place-preview{width:190px}
+.hanoi-preview-map{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border-radius:10px;background:linear-gradient(145deg,#f0b45d,#b54d2f);color:#fff4c6;font-size:28px}
+.danang-place-preview img{width:64px;height:64px;object-fit:cover;border-radius:8px}
 
 @media(max-width:900px){
   .hcm-map-layout{align-items:start!important}

@@ -113,6 +113,38 @@ window.MapCatalog = {
     {district:'Ba Vì',name:'Vườn quốc gia Ba Vì',category:'Thiên nhiên',latitude:21.0634,longitude:105.3700,description:'Khu bảo tồn núi rừng, khí hậu mát và nhiều tuyến tham quan thiên nhiên.',address:'Ba Vì, Hà Nội'},
     {district:'Mỹ Đức',name:'Khu di tích danh thắng Hương Sơn',category:'Danh thắng',latitude:20.7242,longitude:105.7440,description:'Quần thể danh thắng, chùa và tuyến đi thuyền trong vùng núi đá vôi.',address:'Hương Sơn, Mỹ Đức, Hà Nội'}
   ],
+  // The supplied artwork is the Da Nang illustration. These district anchors
+  // follow that artwork; the GPS values remain separate reference coordinates.
+  daNangDistricts: {
+    'Liên Chiểu':[28,25],'Thanh Khê':[51,36],'Hải Châu':[59,50],
+    'Sơn Trà':[79,34],'Hòa Vang':[27,67],'Cẩm Lệ':[57,63],
+    'Ngũ Hành Sơn':[79,75],'Hoàng Sa':[86,12]
+  },
+  daNangLandmarks: [
+    {district:'Liên Chiểu',name:'Bãi biển Xuân Thiều',category:'Biển',latitude:16.0820,longitude:108.1450,description:'Bãi biển phía tây bắc Đà Nẵng với không gian thoáng và hoàng hôn đẹp.',address:'Nguyễn Tất Thành, Liên Chiểu, Đà Nẵng'},
+    {district:'Liên Chiểu',name:'Làng Nam Ô',category:'Văn hóa',latitude:16.1016,longitude:108.1302,description:'Làng biển lâu đời với cảnh quan ghềnh đá và đặc sản địa phương.',address:'Nam Ô, Liên Chiểu, Đà Nẵng'},
+    {district:'Liên Chiểu',name:'Khu du lịch Suối Lương',category:'Thiên nhiên',latitude:16.1040,longitude:108.1110,description:'Không gian sinh thái dưới chân đèo Hải Vân.',address:'Hòa Hiệp Bắc, Liên Chiểu, Đà Nẵng'},
+    {district:'Thanh Khê',name:'Ga Đà Nẵng',category:'Điểm đến',latitude:16.0697,longitude:108.2064,description:'Nhà ga đường sắt chính của thành phố Đà Nẵng.',address:'791 Hải Phòng, Thanh Khê, Đà Nẵng'},
+    {district:'Thanh Khê',name:'Công viên 29 Tháng 3',category:'Công viên',latitude:16.0594,longitude:108.1975,description:'Công viên đô thị lớn ở khu vực phía tây trung tâm thành phố.',address:'2 Nguyễn Tri Phương, Thanh Khê, Đà Nẵng'},
+    {district:'Hải Châu',name:'Cầu Rồng',category:'Biểu tượng',latitude:16.0614,longitude:108.2272,description:'Cây cầu biểu tượng bắc qua sông Hàn, nổi bật với màn phun lửa và phun nước cuối tuần.',address:'Cầu Rồng, Hải Châu, Đà Nẵng'},
+    {district:'Hải Châu',name:'Chợ Hàn',category:'Mua sắm',latitude:16.0691,longitude:108.2240,description:'Khu chợ trung tâm với đặc sản, ẩm thực và quà lưu niệm.',address:'119 Trần Phú, Hải Châu, Đà Nẵng'},
+    {district:'Hải Châu',name:'Bảo tàng Điêu khắc Chăm Đà Nẵng',category:'Bảo tàng',latitude:16.0607,longitude:108.2231,description:'Bảo tàng lưu giữ bộ sưu tập điêu khắc Chăm nổi bật.',address:'2 Đ. 2 Tháng 9, Hải Châu, Đà Nẵng'},
+    {district:'Hải Châu',name:'Nhà thờ Chính tòa Đà Nẵng',category:'Kiến trúc',latitude:16.0678,longitude:108.2218,description:'Công trình kiến trúc màu hồng quen thuộc ở trung tâm thành phố.',address:'156 Trần Phú, Hải Châu, Đà Nẵng'},
+    {district:'Sơn Trà',name:'Bán đảo Sơn Trà',category:'Thiên nhiên',latitude:16.1060,longitude:108.2780,description:'Bán đảo xanh với rừng, biển và các cung đường ngắm cảnh.',address:'Sơn Trà, Đà Nẵng'},
+    {district:'Sơn Trà',name:'Chùa Linh Ứng Sơn Trà',category:'Tâm linh',latitude:16.1218,longitude:108.2753,description:'Quần thể chùa và tượng Quan Âm nhìn ra vịnh Đà Nẵng.',address:'Hoàng Sa, Sơn Trà, Đà Nẵng'},
+    {district:'Sơn Trà',name:'Bãi biển Mỹ Khê',category:'Biển',latitude:16.0598,longitude:108.2460,description:'Bãi biển đô thị nổi tiếng với dải cát dài và các hoạt động ven biển.',address:'Võ Nguyên Giáp, Sơn Trà, Đà Nẵng'},
+    {district:'Sơn Trà',name:'Cầu Tình Yêu',category:'Check-in',latitude:16.0611,longitude:108.2295,description:'Đoạn cầu ven sông Hàn phù hợp ngắm cảnh về đêm.',address:'Trần Hưng Đạo, Sơn Trà, Đà Nẵng'},
+    {district:'Hòa Vang',name:'Bà Nà Hills',category:'Khu vui chơi',latitude:15.9956,longitude:107.9940,description:'Khu du lịch trên núi với Cầu Vàng, cáp treo và các khu vui chơi.',address:'Hòa Ninh, Hòa Vang, Đà Nẵng'},
+    {district:'Hòa Vang',name:'Khu du lịch Suối Hoa',category:'Thiên nhiên',latitude:15.9910,longitude:108.0420,description:'Điểm nghỉ dưỡng sinh thái với suối và không gian rừng núi.',address:'Hòa Phú, Hòa Vang, Đà Nẵng'},
+    {district:'Hòa Vang',name:'Khu du lịch Ngầm Đôi',category:'Thiên nhiên',latitude:15.9800,longitude:108.1160,description:'Suối tự nhiên và khu dã ngoại ở phía tây thành phố.',address:'Hòa Phú, Hòa Vang, Đà Nẵng'},
+    {district:'Cẩm Lệ',name:'Khu di tích K20',category:'Lịch sử',latitude:16.0195,longitude:108.2180,description:'Di tích lịch sử gắn với hoạt động cách mạng tại Đà Nẵng.',address:'Khuê Mỹ, Cẩm Lệ, Đà Nẵng'},
+    {district:'Cẩm Lệ',name:'Công viên Hòa Xuân',category:'Công viên',latitude:16.0120,longitude:108.2060,description:'Không gian cây xanh và mặt nước ở khu đô thị phía nam thành phố.',address:'Hòa Xuân, Cẩm Lệ, Đà Nẵng'},
+    {district:'Ngũ Hành Sơn',name:'Danh thắng Ngũ Hành Sơn',category:'Danh thắng',latitude:16.0036,longitude:108.2636,description:'Quần thể núi đá vôi, hang động và chùa nổi bật phía đông nam Đà Nẵng.',address:'Hòa Hải, Ngũ Hành Sơn, Đà Nẵng'},
+    {district:'Ngũ Hành Sơn',name:'Chùa Tam Thai',category:'Tâm linh',latitude:16.0038,longitude:108.2630,description:'Ngôi chùa cổ trong quần thể danh thắng Ngũ Hành Sơn.',address:'Ngũ Hành Sơn, Đà Nẵng'},
+    {district:'Ngũ Hành Sơn',name:'Bãi biển Non Nước',category:'Biển',latitude:15.9972,longitude:108.2720,description:'Bãi biển phía nam thành phố, gần các khu nghỉ dưỡng ven biển.',address:'Trường Sa, Ngũ Hành Sơn, Đà Nẵng'},
+    {district:'Ngũ Hành Sơn',name:'Làng đá mỹ nghệ Non Nước',category:'Làng nghề',latitude:16.0000,longitude:108.2568,description:'Làng nghề điêu khắc đá truyền thống dưới chân Ngũ Hành Sơn.',address:'Huyền Trân Công Chúa, Ngũ Hành Sơn, Đà Nẵng'},
+    {district:'Hoàng Sa',name:'Quần đảo Hoàng Sa',category:'Biển đảo',latitude:16.5000,longitude:111.7500,description:'Cụm đảo ngoài khơi được đặt nhãn riêng trên ảnh minh họa Đà Nẵng.',address:'Khu vực biển Hoàng Sa'}
+  ],
   // Pick a point strictly inside the largest ring; offshore islands do not move it.
   representative(polygons) {
     const area=r=>Math.abs(r.reduce((s,p,i)=>{const q=r[(i+1)%r.length];return s+p[0]*q[1]-q[0]*p[1];},0));
