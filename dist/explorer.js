@@ -98,7 +98,10 @@
     if(!layer)return;
     const visibleProvinces=provinceData.filter(province=>!state.regionView||provinceRegion(province.name)===state.regionView);
     const rect=$('scene').getBoundingClientRect();
-    const groups=window.MapCatalog.cluster(visibleProvinces.filter(p=>p.name!==state.provinceMarker).map(p=>({name:p.name,x:window.MapCatalog.anchors[p.name][0],y:window.MapCatalog.anchors[p.name][1]})),rect.width,rect.height,22).filter(g=>g.length>1);
+    // Keep clusters local at the 40% default; a fixed 22px radius made the
+    // narrow national map collapse into one 34-province bubble.
+    const countryDistance=Math.max(8,Math.min(14,rect.width*.025));
+    const groups=window.MapCatalog.cluster(visibleProvinces.filter(p=>p.name!==state.provinceMarker).map(p=>({name:p.name,x:window.MapCatalog.anchors[p.name][0],y:window.MapCatalog.anchors[p.name][1]})),rect.width,rect.height,countryDistance).filter(g=>g.length>1);
     const grouped=new Set(groups.flat().map(p=>p.name));
     const clusters=groups.map(group=>{const x=group.reduce((n,p)=>n+p.x,0)/group.length,y=group.reduce((n,p)=>n+p.y,0)/group.length;return `<button class="district-cluster country-cluster" style="left:${x}%;top:${y}%" data-country-cluster="${esc(group.map(p=>p.name).join('|'))}" aria-label="Chọn trong nhóm ${group.length} tỉnh thành">${group.length}</button>`;}).join('');
     const choices=state.countryChoices?.length?`<div class="country-choices"><strong>Chọn tỉnh/thành</strong><button data-close-choices aria-label="Đóng nhóm tỉnh">×</button>${state.countryChoices.map(name=>`<button data-province-choice="${esc(name)}">${esc(name)}</button>`).join('')}</div>`:'';

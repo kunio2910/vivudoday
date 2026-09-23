@@ -9,6 +9,7 @@ const {chromium}=require('playwright');
   assert(await page.locator('.province-label').count()>0);
   const countryCoverage=await page.evaluate(()=>document.querySelectorAll('.province-label').length+[...document.querySelectorAll('[data-country-cluster]')].reduce((n,el)=>n+el.dataset.countryCluster.split('|').length,0));
   assert.equal(countryCoverage,34);
+  assert(await page.evaluate(()=>[...document.querySelectorAll('[data-country-cluster]')].every(el=>el.dataset.countryCluster.split('|').length<=5)),'National cluster is too large');
   assert.equal(await page.locator('#zoomReset').innerText(),'40%');
   assert.equal(await page.locator('.province-marker.active').count(),0);
   await page.locator('#topSearchInput').fill('Hồ Chí Minh');
