@@ -61,21 +61,26 @@
   #open3d{right:10px}
 }
 
-/* Country map: 50% default size; the viewport still supports scrolling after zooming. */
-.map-window{display:block!important;overflow:auto;scrollbar-width:auto;scrollbar-color:#126957 #edf4f1}
-.map-scene{width:50%;height:auto;min-width:0;max-width:none;margin:0;aspect-ratio:2/3;transform-origin:top left}
+/* Country map: 40% default size, centered in the page; scrolling belongs to the document. */
+html,body{overflow-x:hidden;overflow-y:auto}
+.map-window{display:flex!important;align-items:center;justify-content:center;overflow:visible!important;scrollbar-width:auto;scrollbar-color:#126957 #edf4f1}
+.map-window.is-3d,.map-window.hcm-mode{display:block!important;overflow:hidden!important}
+.map-scene{width:40%;height:auto;min-width:0;max-width:none;margin:0;aspect-ratio:2/3;flex:0 0 auto;transform-origin:center center}
 .map-scene>img{width:100%;height:auto;min-height:0;object-fit:contain}
 #markers{display:none}
+@media(min-width:681px){.layout{height:auto;min-height:calc(100svh - 80px)}.map-section{min-height:0}.map-window{flex:0 0 auto;min-height:660px;height:auto}.map-window.province-mode,.map-window.hcm-mode{min-height:660px}}
 
 /* Region names live in this legend, outside the artwork. */
 #regionAreas .region-hotspot span{display:none}
 #regionLegend{display:flex;flex-wrap:wrap;gap:8px;margin:-2px 0 12px;position:relative;z-index:5}
 .region-chip{padding:8px 13px;border:2px solid transparent;border-radius:999px;font-size:13px;font-weight:800;line-height:1;background:#eaf5ee;color:#126957;box-shadow:0 3px 10px #183a3718}
+.region-chip.all{border-color:#183a37;color:#183a37;background:#fff}
 .region-chip.bac-bo{border-color:#126957;color:#0d6657;background:#e5f5ee}
 .region-chip.trung-bo{border-color:#a34f20;color:#8a3d18;background:#fff0e7}
 .region-chip.tay-nguyen{border-color:#536d2d;color:#46601f;background:#eef5df}
 .region-chip.nam-bo{border-color:#1b6683;color:#155572;background:#e8f4f8}
 .region-chip[aria-pressed=true]{color:#fff;box-shadow:0 4px 15px #183a3738}
+.region-chip.all[aria-pressed=true]{background:#183a37;border-color:#183a37}
 .region-chip.bac-bo[aria-pressed=true]{background:#0d6657}
 .region-chip.trung-bo[aria-pressed=true]{background:#a34f20}
 .region-chip.tay-nguyen[aria-pressed=true]{background:#536d2d}
@@ -93,6 +98,20 @@
   .province-label span{font-size:8px}
   .island-label b{font-size:8px;padding:2px 4px}
 }
+
+/* Province markers open a glowing preview card before the detailed province map. */
+.province-marker{position:absolute;z-index:3;transform:translate(-50%,-50%);pointer-events:auto}.province-marker.city{z-index:5}
+.province-label{position:relative;left:auto!important;top:auto!important;width:12px;height:12px;display:block;padding:0;transform:none;z-index:2}
+.province-label i{position:absolute;left:2px;top:2px;width:8px;height:8px}
+.province-label span{position:absolute;left:15px;top:-5px;padding:2px 4px}
+.province-marker.active{z-index:12}
+.province-marker.active .province-label i{background:#fff5c4;border-color:#ffc25c;box-shadow:0 0 0 5px #ffc25c55,0 0 14px #ffb733,0 0 28px #ffb733;animation:province-glow 1.8s ease-out infinite}
+.province-marker.active .province-label::before{content:"";position:absolute;top:100%;left:50%;width:3px;height:42px;transform:translateX(-50%);background:linear-gradient(to bottom,#fff8cf,#ffb733);box-shadow:0 0 8px #ffdc65,0 0 18px #ffb733;pointer-events:none}
+.province-marker.active .province-label::after{content:"";position:absolute;inset:-10px;border:2px solid #ffc25c;border-radius:50%;background:radial-gradient(circle,#ffd16d55,transparent 70%);pointer-events:none;animation:province-halo 1.8s ease-out infinite}
+.province-preview{position:absolute;top:52px;left:50%;width:190px;transform:translateX(-50%);padding:9px;border:2px solid #ffd281;border-radius:13px;background:#183a37;color:#fff;box-shadow:0 0 20px #ffc66066,0 10px 28px #183a3740}
+.province-preview-top{display:flex;align-items:center;gap:8px}.province-preview-top>span{min-width:0}.province-preview strong,.province-preview small,.province-preview em{display:block}.province-preview strong{font-size:12px;line-height:1.25}.province-preview small{margin-top:3px;color:#d4e2da;font-size:10px}.province-preview em{margin-top:4px;color:#ffdf9a;font-size:9px;font-style:normal}.province-preview-map{width:45px;height:45px;flex:0 0 45px;padding:4px;border-radius:9px;background:#2a6556}.province-preview-map polygon{fill:#9ed1ae;stroke:#f7fff7;stroke-width:1.4;vector-effect:non-scaling-stroke}.province-more{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px;padding:6px 8px;border:1px solid #8bc0aa;border-radius:8px;background:#eaf5ee;color:#126957;font-size:11px;font-weight:800}.province-more:hover{background:#fff;color:#126957}
+@keyframes province-glow{0%,100%{box-shadow:0 0 0 4px #ffc25c44,0 0 11px #ffb733}50%{box-shadow:0 0 0 7px #ffc25c22,0 0 24px #ffb733}}
+@keyframes province-halo{0%{transform:scale(.65);opacity:1}100%{transform:scale(1.45);opacity:0}}
 
 /* The top search field opens the Khám Phá panel without taking another menu slot. */
 .header-search{display:flex;align-items:center;gap:7px;width:min(260px,28vw);padding:5px 11px;border:1px solid #dce6e2;border-radius:12px;background:#f3f7f5;color:#183a37}
